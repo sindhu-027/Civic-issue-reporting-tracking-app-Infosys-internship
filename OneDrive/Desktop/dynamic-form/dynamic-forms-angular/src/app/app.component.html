@@ -1,0 +1,56 @@
+<div class="accordion p-4" id="accordionExample">
+  <h3> {{ company.name }}</h3>
+  @for (location of company.locations; track $index) {
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+        [attr.data-bs-target]="'#collapse'+$index" aria-expanded="true">
+        Location {{$index + 1}}
+        <button type="button" class="m-2 btn btn-danger" (click)="deleteLocation($index)">Delete</button>
+      </button>
+    </h2>
+    <div [id]="'collapse'+$index" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <form class="row g-3 ">
+          <div class="col-6">
+            <label for="country" class="form-label">Country</label>
+            <input [(ngModel)]="location.country" type="text" class="form-control" id="country" required
+              [name]="'country'+$index">
+          </div>
+          <div class="col-6">
+            <label for="city" class="form-label">City</label>
+            <input [(ngModel)]="location.city" type="text" class="form-control" id="city" required
+              [name]="'city'+$index">
+          </div>
+          <div class="col-12">
+            <label for="streetAddress" class="form-label">Street Address</label>
+            <input [(ngModel)]="location.streetAddress" type="text" class="form-control" id="streetAddress" required
+              [name]="'streetAddress'+$index">
+          </div>
+          <h5>Phones</h5>
+          @for (phone of location.phoneNumbers; track $index) {
+          <div class="col-4">
+            <label for="code" class="form-label">Code</label>
+            <input [(ngModel)]="phone.code" type="text" class="form-control" id="code" required [name]="'code'+$index">
+          </div>
+          <div class="col-6">
+            <label for="number" class="form-label">Number</label>
+            <input [(ngModel)]="phone.number" type="text" class="form-control" id="number" required
+              [name]="'number'+$index">
+          </div>
+          <div class="col-2 d-flex align-items-end">
+            <button type="button" class="m-2 btn btn-danger" (click)="deletePhone(location, $index)">Delete</button>
+          </div>
+          }
+          <div class="col-3 d-flex align-items-end">
+            <button class="btn btn-success" (click)="addPhone(location)">Add Phone</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+<button class="btn btn-success m-2" (click)="addLocation()">Add Location</button>
+<button class="btn btn-primary" (click)="submit()">Submit</button>
