@@ -1,370 +1,6 @@
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-
-// export default function ViewComplaints() {
-//   const [complaints, setComplaints] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [user, setUser] = useState(null);
-
-//   useEffect(() => {
-//     const fetchComplaints = async () => {
-//       try {
-//         // ✅ Step 1: Get logged-in user info
-//         const userRes = await axios.get("http://localhost:5000/api/auth/profile", {
-//           withCredentials: true,
-//         });
-//         setUser(userRes.data);
-
-//         // ✅ Step 2: Fetch complaints based on role
-//         let apiUrl = "http://localhost:5000/api/complaints/my"; // default for normal user
-
-//         if (userRes.data.role === "admin") {
-//           apiUrl = "http://localhost:5000/api/complaints/all";
-//         } else if (userRes.data.role === "volunteer") {
-//           apiUrl = "http://localhost:5000/api/complaints/nearby";
-//         }
-
-//         const res = await axios.get(apiUrl, { withCredentials: true });
-//         setComplaints(res.data);
-//       } catch (err) {
-//         console.error(err);
-//         setError("⚠️ Failed to load complaints. Please try again later.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchComplaints();
-//   }, []);
-
-//   if (loading)
-//     return (
-//       <div className="text-center mt-20 text-gray-500 text-lg">
-//         Loading complaints...
-//       </div>
-//     );
-
-//   if (error)
-//     return (
-//       <div className="text-center mt-20 text-red-500 text-lg">{error}</div>
-//     );
-
-//   if (complaints.length === 0)
-//     return (
-//       <div className="text-center mt-20 text-gray-500 text-lg">
-//         No complaints found for your area.
-//       </div>
-//     );
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 p-6">
-//       {/* Navbar */}
-//       <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
-//         <h1 className="text-xl font-bold text-green-700">Clean Street</h1>
-//         <div className="flex gap-4">
-//           <button
-//             onClick={() => (window.location.href = "/dashboard")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Dashboard
-//           </button>
-//           <button
-//             onClick={() => (window.location.href = "/report")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Report Issue
-//           </button>
-//           <button
-//             onClick={() => (window.location.href = "/profile")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Profile
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Complaints Grid */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {complaints.map((c) => (
-//           <div
-//             key={c._id}
-//             className="bg-white rounded-xl shadow-md p-4 transition-transform transform hover:scale-[1.02]"
-//           >
-//             <div className="w-full h-48 mb-3">
-//               {c.photo ? (
-//                 <img
-//                   src={
-//                     c.photo.startsWith("http")
-//                       ? c.photo
-//                       : `http://localhost:5000/${c.photo}`
-//                   }
-//                   alt="Complaint"
-//                   className="w-full h-full object-cover rounded-lg"
-//                   onError={(e) => {
-//                     e.target.onerror = null;
-//                     e.target.src = "/no-image.png";
-//                   }}
-//                 />
-//               ) : (
-//                 <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
-//                   No image
-//                 </div>
-//               )}
-//             </div>
-
-//             <h2 className="text-lg font-bold text-gray-800 mb-2">
-//               {c.title || "Untitled Complaint"}
-//             </h2>
-//             <p className="text-gray-600 text-sm mb-2">{c.description}</p>
-
-//             <div className="flex flex-col text-sm text-gray-500 mb-3">
-//               <span>
-//                 📍 <strong>Address:</strong> {c.address || "N/A"}
-//               </span>
-//               <span>
-//                 🗓️ <strong>Date:</strong>{" "}
-//                 {c.createdAt
-//                   ? new Date(c.createdAt).toLocaleDateString()
-//                   : c.created_at
-//                   ? new Date(c.created_at).toLocaleDateString()
-//                   : "N/A"}
-//               </span>
-
-//               <span>
-//                 ⚙️ <strong>Status:</strong>{" "}
-//                 <span
-//                   className={`font-semibold ${
-//                     c.status === "resolved"
-//                       ? "text-green-600"
-//                       : c.status === "in_progress"
-//                       ? "text-yellow-600"
-//                       : "text-gray-700"
-//                   }`}
-//                 >
-//                   {c.status}
-//                 </span>
-//               </span>
-//             </div>
-
-//             {c.assigned_to && (
-//               <p className="text-sm text-gray-500">
-//                 👷 Assigned to: {c.assigned_to}
-//               </p>
-//             )}
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-//view 
-
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-
-// export default function ViewComplaints() {
-//   const [complaints, setComplaints] = useState([]);
-//   const [selectedComplaint, setSelectedComplaint] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-
-//   // ✅ Fetch all complaints (for all roles)
-//   useEffect(() => {
-//     const fetchComplaints = async () => {
-//       try {
-//         const res = await axios.get("http://localhost:5000/api/complaints/all", {
-//           withCredentials: true,
-//         });
-//         setComplaints(res.data);
-//       } catch (err) {
-//         console.error(err);
-//         setError("⚠️ Failed to load complaints. Please try again later.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchComplaints();
-//   }, []);
-
-//   if (loading)
-//     return <div className="text-center mt-20 text-gray-500 text-lg">Loading complaints...</div>;
-
-//   if (error)
-//     return <div className="text-center mt-20 text-red-500 text-lg">{error}</div>;
-
-//   if (complaints.length === 0)
-//     return <div className="text-center mt-20 text-gray-500 text-lg">No complaints found.</div>;
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 p-6">
-//       {/* Navbar */}
-//       <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
-//         <h1 className="text-xl font-bold text-green-700">Clean Street</h1>
-//         <div className="flex gap-4">
-//           <button
-//             onClick={() => (window.location.href = "/dashboard")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Dashboard
-//           </button>
-//           <button
-//             onClick={() => (window.location.href = "/report")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Report Issue
-//           </button>
-//           <button
-//             onClick={() => (window.location.href = "/profile")}
-//             className="text-gray-700 hover:text-green-600 font-semibold"
-//           >
-//             Profile
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Complaints Grid */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {complaints.map((c) => (
-//           <div
-//             key={c._id}
-//             className="bg-white rounded-xl shadow-md p-4 transition-transform transform hover:scale-[1.02]"
-//           >
-//             <div className="w-full h-48 mb-3">
-//               {c.photo ? (
-//                 <img
-//                   src={
-//                     c.photo.startsWith("http")
-//                       ? c.photo
-//                       : `http://localhost:5000/${c.photo}`
-//                   }
-//                   alt="Complaint"
-//                   className="w-full h-full object-cover rounded-lg"
-//                   onError={(e) => {
-//                     e.target.onerror = null;
-//                     e.target.src = "/no-image.png";
-//                   }}
-//                 />
-//               ) : (
-//                 <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
-//                   No image
-//                 </div>
-//               )}
-//             </div>
-
-//             <h2 className="text-lg font-bold text-gray-800 mb-2">
-//               {c.title || "Untitled Complaint"}
-//             </h2>
-//             <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-//               {c.description || "No description"}
-//             </p>
-
-//             <div className="flex flex-col text-sm text-gray-500 mb-3">
-//               <span>📍 <strong>Address:</strong> {c.address || "N/A"}</span>
-//               <span>
-//                 🗓️ <strong>Date:</strong>{" "}
-//                 {new Date(c.createdAt || c.created_at).toLocaleDateString()}
-//               </span>
-//               <span>
-//                 ⚙️ <strong>Status:</strong>{" "}
-//                 <span
-//                   className={`font-semibold ${
-//                     c.status === "resolved"
-//                       ? "text-green-600"
-//                       : c.status === "in_progress"
-//                       ? "text-yellow-600"
-//                       : "text-gray-700"
-//                   }`}
-//                 >
-//                   {c.status}
-//                 </span>
-//               </span>
-//             </div>
-
-//             {c.assignedVolunteer && (
-//               <p className="text-sm text-gray-500 mb-2">
-//                 👷 Assigned to: {c.assignedVolunteer.fullName || c.assignedVolunteer.username}
-//               </p>
-//             )}
-
-//             <button
-//               onClick={() => setSelectedComplaint(c)}
-//               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 rounded-lg"
-//             >
-//               View
-//             </button>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* 🟢 Complaint Details Modal */}
-//       {selectedComplaint && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-//           <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative">
-//             <button
-//               onClick={() => setSelectedComplaint(null)}
-//               className="absolute top-3 right-4 text-gray-600 hover:text-black text-2xl"
-//             >
-//               ✕
-//             </button>
-
-//             <h2 className="text-2xl font-semibold text-gray-800 mb-3">
-//               {selectedComplaint.title}
-//             </h2>
-
-//             {selectedComplaint.photo && (
-//               <img
-//                 src={
-//                   selectedComplaint.photo.startsWith("http")
-//                     ? selectedComplaint.photo
-//                     : `http://localhost:5000/${selectedComplaint.photo}`
-//                 }
-//                 alt="Complaint"
-//                 className="w-full h-56 object-cover rounded-lg mb-3"
-//               />
-//             )}
-
-//             <p className="text-gray-700 mb-3">{selectedComplaint.description}</p>
-//             <p className="text-gray-600 text-sm mb-1">
-//               📍 <strong>Address:</strong> {selectedComplaint.address}
-//             </p>
-//             {selectedComplaint.landmark && (
-//               <p className="text-gray-600 text-sm mb-1">
-//                 🏙️ <strong>Landmark:</strong> {selectedComplaint.landmark}
-//               </p>
-//             )}
-//             <p className="text-gray-600 text-sm mb-1">
-//               ⚙️ <strong>Status:</strong> {selectedComplaint.status}
-//             </p>
-//             <p className="text-gray-600 text-sm mb-1">
-//               👷 <strong>Assigned Volunteer:</strong>{" "}
-//               {selectedComplaint.assignedVolunteer
-//                 ? selectedComplaint.assignedVolunteer.fullName ||
-//                   selectedComplaint.assignedVolunteer.username
-//                 : "Not Assigned"}
-//             </p>
-//             <p className="text-gray-600 text-sm">
-//               🗓️ <strong>Date:</strong>{" "}
-//               {new Date(selectedComplaint.createdAt).toLocaleDateString()}
-//             </p>
-
-//             <div className="mt-4 border-t pt-3">
-//               <h3 className="text-md font-semibold text-gray-800 mb-2">Comments & Votes</h3>
-//               <p className="text-sm text-gray-500">💬 Coming soon...</p>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-//vote 
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios"; // centralized axios instance (baseURL -> /api)
 
 export default function ViewComplaints() {
   const [complaints, setComplaints] = useState([]);
@@ -373,78 +9,127 @@ export default function ViewComplaints() {
   const [error, setError] = useState("");
   const [comment, setComment] = useState("");
   const [voting, setVoting] = useState(false);
+  const [postingComment, setPostingComment] = useState(false);
 
   // ✅ Fetch all complaints
-  useEffect(() => {
-    const fetchComplaints = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/complaints/all", {
-          withCredentials: true,
-        });
-        setComplaints(res.data);
-      } catch (err) {
-        console.error(err);
-        setError("⚠️ Failed to load complaints. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchComplaints();
-  }, []);
-
-  const handleVote = async (id, type) => {
+  const fetchAll = async () => {
     try {
-      setVoting(true);
-      await axios.post(
-        `http://localhost:5000/api/complaints/vote/${id}`,
-        { type },
-        { withCredentials: true }
-      );
-      const res = await axios.get("http://localhost:5000/api/complaints/all", {
-        withCredentials: true,
-      });
-      setComplaints(res.data);
-      const updated = res.data.find((c) => c._id === selectedComplaint._id);
-      setSelectedComplaint(updated);
+      const res = await api.get("/complaints/all");
+      setComplaints(res.data || []);
     } catch (err) {
-      console.error("Vote failed:", err);
-    } finally {
-      setVoting(false);
+      console.error("Fetch complaints error:", err);
+      setError("⚠️ Failed to load complaints. Please try again later.");
     }
   };
 
-  const handleComment = async () => {
-    if (!comment.trim()) return;
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      await fetchAll();
+      setLoading(false);
+    })();
+  }, []);
+
+  // ✅ Fetch single complaint
+  const fetchComplaintById = async (id) => {
     try {
-      await axios.post(
-        `http://localhost:5000/api/complaints/comment/${selectedComplaint._id}`,
-        { text: comment },
-        { withCredentials: true }
-      );
-      const res = await axios.get("http://localhost:5000/api/complaints/all", {
-        withCredentials: true,
+      const res = await api.get("/complaints/all");
+      const found = res.data?.find((c) => c._id === id);
+      return found || null;
+    } catch (err) {
+      console.error("Fetch single complaint error:", err);
+      return null;
+    }
+  };
+
+  // // ✅ Handle Upvote / Downvote (fixed endpoints)
+  // const handleVote = async (id, type) => {
+  //   try {
+  //     setVoting(true);
+  //     if (type === "up") {
+  //       await api.post(`/complaints/${id}/upvote`);
+  //     } else {
+  //       await api.post(`/complaints/${id}/downvote`);
+  //     }
+
+  //     await fetchAll();
+  //     if (selectedComplaint && selectedComplaint._id === id) {
+  //       const updated = await fetchComplaintById(id);
+  //       setSelectedComplaint(updated);
+  //     }
+  //   } catch (err) {
+  //     console.error("Vote failed:", err);
+  //   } finally {
+  //     setVoting(false);
+  //   }
+  // };
+// ✅ Corrected handleVote (for separate routes)
+const handleVote = async (id, type) => {
+  try {
+    setVoting(true);
+    const endpoint = type === "up" ? "upvote" : "downvote";
+    await api.post(`/complaints/${id}/${endpoint}`);
+    await fetchAll();
+    if (selectedComplaint && selectedComplaint._id === id) {
+      const updated = await fetchComplaintById(id);
+      setSelectedComplaint(updated);
+    }
+  } catch (err) {
+    console.error("Vote failed:", err);
+  } finally {
+    setVoting(false);
+  }
+};
+
+  // ✅ Handle Comment
+  const handleComment = async () => {
+    if (!selectedComplaint || !comment.trim()) return;
+    try {
+      setPostingComment(true);
+      await api.post(`/complaints/${selectedComplaint._id}/comment`, {
+        text: comment.trim(),
       });
-      setComplaints(res.data);
-      const updated = res.data.find((c) => c._id === selectedComplaint._id);
+      await fetchAll();
+      const updated = await fetchComplaintById(selectedComplaint._id);
       setSelectedComplaint(updated);
       setComment("");
     } catch (err) {
       console.error("Comment failed:", err);
+    } finally {
+      setPostingComment(false);
     }
   };
 
   if (loading)
-    return <div className="text-center mt-20 text-gray-500 text-lg">Loading complaints...</div>;
+    return (
+      <div className="text-center mt-20 text-gray-500 text-lg">
+        Loading complaints...
+      </div>
+    );
 
   if (error)
-    return <div className="text-center mt-20 text-red-500 text-lg">{error}</div>;
+    return (
+      <div className="text-center mt-20 text-red-500 text-lg">{error}</div>
+    );
 
   if (complaints.length === 0)
-    return <div className="text-center mt-20 text-gray-500 text-lg">No complaints found.</div>;
+    return (
+      <div className="text-center mt-20 text-gray-500 text-lg">
+        No complaints found.
+      </div>
+    );
+
+  const statusClass = (s) => {
+    if (!s) return "text-gray-700";
+    if (s === "Resolved") return "text-green-600";
+    if (s === "In Progress") return "text-yellow-600";
+    if (s === "Assigned") return "text-indigo-600";
+    return "text-gray-700";
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Navbar */}
+      {/* ✅ Navbar */}
       <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
         <h1 className="text-xl font-bold text-green-700">Clean Street</h1>
         <div className="flex gap-4">
@@ -469,20 +154,21 @@ export default function ViewComplaints() {
         </div>
       </div>
 
-      {/* Complaints Grid */}
+      {/* ✅ Complaints Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {complaints.map((c) => (
           <div
             key={c._id}
             className="bg-white rounded-xl shadow-md p-4 transition-transform transform hover:scale-[1.02]"
           >
+            {/* ✅ Show one image */}
             <div className="w-full h-48 mb-3">
-              {c.photo ? (
+              {Array.isArray(c.photos) && c.photos.length > 0 ? (
                 <img
                   src={
-                    c.photo.startsWith("http")
-                      ? c.photo
-                      : `http://localhost:5000/${c.photo}`
+                    c.photos[0].startsWith("http")
+                      ? c.photos[0]
+                      : `${import.meta.env.VITE_API_URL}/${c.photos[0]}`
                   }
                   alt="Complaint"
                   className="w-full h-full object-cover rounded-lg"
@@ -502,30 +188,24 @@ export default function ViewComplaints() {
             </p>
 
             <div className="flex flex-col text-sm text-gray-500 mb-3">
-              <span>📍 <strong>Address:</strong> {c.address || "N/A"}</span>
+              <span>
+                📍 <strong>Address:</strong> {c.location || c.address || "N/A"}
+              </span>
               <span>
                 🗓️ <strong>Date:</strong>{" "}
-                {new Date(c.createdAt || c.created_at).toLocaleDateString()}
+                {new Date(c.createdAt).toLocaleDateString()}
               </span>
               <span>
                 ⚙️ <strong>Status:</strong>{" "}
-                <span
-                  className={`font-semibold ${
-                    c.status === "completed"
-                      ? "text-green-600"
-                      : c.status === "in_progress"
-                      ? "text-yellow-600"
-                      : "text-gray-700"
-                  }`}
-                >
-                  {c.status}
+                <span className={`font-semibold ${statusClass(c.status)}`}>
+                  {c.status || "Pending"}
                 </span>
               </span>
             </div>
 
-            {c.assignedVolunteer && (
+            {c.volunteer && (
               <p className="text-sm text-gray-500 mb-2">
-                👷 Assigned to: {c.assignedVolunteer.fullName || c.assignedVolunteer.username}
+                👷 Assigned to: {c.volunteer.username || "Volunteer"}
               </p>
             )}
 
@@ -539,10 +219,10 @@ export default function ViewComplaints() {
         ))}
       </div>
 
-      {/* 🟢 Complaint Details Modal */}
+      {/* ✅ Complaint Modal */}
       {selectedComplaint && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative overflow-y-auto max-h-[90vh]">
+          <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative overflow-y-auto max-h-[90vh]">
             <button
               onClick={() => setSelectedComplaint(null)}
               className="absolute top-3 right-4 text-gray-600 hover:text-black text-2xl"
@@ -554,21 +234,28 @@ export default function ViewComplaints() {
               {selectedComplaint.title}
             </h2>
 
-            {selectedComplaint.photo && (
-              <img
-                src={
-                  selectedComplaint.photo.startsWith("http")
-                    ? selectedComplaint.photo
-                    : `http://localhost:5000/${selectedComplaint.photo}`
-                }
-                alt="Complaint"
-                className="w-full h-56 object-cover rounded-lg mb-3"
-              />
-            )}
+            {/* ✅ Show all photos */}
+            {Array.isArray(selectedComplaint.photos) &&
+            selectedComplaint.photos.length > 0 ? (
+              <div className="mb-3 grid grid-cols-1 gap-2">
+                {selectedComplaint.photos.map((p, i) => (
+                  <img
+                    key={i}
+                    src={
+                      p.startsWith("http")
+                        ? p
+                        : `${import.meta.env.VITE_API_URL}/${p}`
+                    }
+                    alt={`complaint-${i}`}
+                    className="w-full h-56 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+            ) : null}
 
             <p className="text-gray-700 mb-3">{selectedComplaint.description}</p>
 
-            {/* 🚦 Status Tracking Line */}
+            {/* ✅ Status Progress */}
             <div className="mb-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>Reported</span>
@@ -578,9 +265,9 @@ export default function ViewComplaints() {
               <div className="w-full bg-gray-300 h-2 rounded-full">
                 <div
                   className={`h-2 rounded-full transition-all duration-500 ${
-                    selectedComplaint.status === "completed"
+                    selectedComplaint.status === "Resolved"
                       ? "bg-green-500 w-full"
-                      : selectedComplaint.status === "in_progress"
+                      : selectedComplaint.status === "In Progress"
                       ? "bg-yellow-400 w-1/2"
                       : "bg-gray-400 w-1/4"
                   }`}
@@ -588,17 +275,18 @@ export default function ViewComplaints() {
               </div>
             </div>
 
-            {/* Votes */}
-            <div className="flex items-center gap-3 mb-4">
+            {/* ✅ Upvote / Downvote */}
+            <div className="flex items-center gap-4 mb-4">
               <button
-                onClick={() => handleVote(selectedComplaint._id, "upvote")}
+                onClick={() => handleVote(selectedComplaint._id, "up")}
                 disabled={voting}
                 className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 👍 {selectedComplaint.upvotes?.length || 0}
               </button>
+
               <button
-                onClick={() => handleVote(selectedComplaint._id, "downvote")}
+                onClick={() => handleVote(selectedComplaint._id, "down")}
                 disabled={voting}
                 className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
@@ -606,18 +294,21 @@ export default function ViewComplaints() {
               </button>
             </div>
 
-            {/* Comments */}
+            {/* ✅ Comments */}
             <div>
               <h3 className="font-semibold mb-2 text-gray-700">Comments</h3>
-              <div className="max-h-32 overflow-y-auto bg-gray-50 p-2 rounded-lg">
+              <div className="max-h-48 overflow-y-auto bg-gray-50 p-2 rounded-lg">
                 {selectedComplaint.comments?.length > 0 ? (
                   selectedComplaint.comments.map((com, idx) => (
-                    <p
+                    <div
                       key={idx}
                       className="text-sm text-gray-600 border-b border-gray-200 py-1"
                     >
-                      💬 {com.text}
-                    </p>
+                      <div className="text-xs text-gray-400">
+                        {new Date(com.createdAt).toLocaleString()}
+                      </div>
+                      <div>💬 {com.text}</div>
+                    </div>
                   ))
                 ) : (
                   <p className="text-sm text-gray-400">No comments yet</p>
@@ -634,6 +325,7 @@ export default function ViewComplaints() {
                 />
                 <button
                   onClick={handleComment}
+                  disabled={postingComment}
                   className="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
                   Post

@@ -1,18 +1,29 @@
-const mongoose = require("mongoose");
+
+// config/db.js
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect("mongodb://127.0.0.1:27017/cleanstreet", {
+    // ✅ Use environment variable from .env
+    const mongoURI = process.env.MONGO_URI;
+
+    if (!mongoURI) {
+      throw new Error("❌ MONGO_URI is not defined in .env file");
+    }
+
+    await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("MongoDB Connected...");
+
+    console.log("✅ MongoDB Connected Successfully");
   } catch (err) {
-    console.error(err.message);
+    console.error("❌ MongoDB Connection Error:", err.message);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
-
-
+export default connectDB;

@@ -1,5 +1,6 @@
- import React, { useState, useEffect, useRef } from "react";
-import axios from "../api/axios";
+
+import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -12,15 +13,16 @@ export default function ReportIssue() {
     landmark: "",
     description: "",
     location: null,
-    photo: null,
+    photos: [],
   });
 
-  const [preview, setPreview] = useState(null);
+  const [previews, setPreviews] = useState([]);
   const [fetchingAddress, setFetchingAddress] = useState(false);
   const [addressError, setAddressError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const delayRef = useRef(null);
 
-  // Auto-fetch lat/lng from address
+  // 🌍 Fetch coordinates automatically when address changes
   useEffect(() => {
     if (!formData.address.trim()) return;
     clearTimeout(delayRef.current);
@@ -36,7 +38,7 @@ export default function ReportIssue() {
         const data = await res.json();
         if (data.length > 0) {
           const { lat, lon } = data[0];
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             location: { lat: parseFloat(lat), lng: parseFloat(lon) },
           }));
@@ -44,7 +46,7 @@ export default function ReportIssue() {
         } else {
           setAddressError("⚠️ Unable to find location for this address.");
         }
-      } catch (error) {
+      } catch {
         setAddressError("❌ Address lookup failed. Try again.");
       } finally {
         setFetchingAddress(false);
@@ -52,46 +54,58 @@ export default function ReportIssue() {
     }, 1000);
   }, [formData.address]);
 
+  // 🧾 Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // 🖼️ Handle multiple image selection
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, photo: file }));
-      setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setFormData((prev) => ({ ...prev, photos: files }));
+
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setPreviews(newPreviews);
+    } else {
+      setFormData((prev) => ({ ...prev, photos: [] }));
+      setPreviews([]);
     }
   };
 
+  // 🚀 Submit the complaint
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
 
     if (!formData.location) {
       alert("📍 Please select a location or enter a valid address.");
       return;
     }
 
+    setSubmitting(true);
     try {
       const data = new FormData();
       data.append("title", formData.issueTitle);
       data.append("description", formData.description);
-      data.append("address", formData.address);
-      data.append("lat", formData.location.lat);
-      data.append("lng", formData.location.lng);
+      data.append("category", formData.issueType);
+      data.append("location", formData.address);
+      data.append("latitude", formData.location.lat);
+      data.append("longitude", formData.location.lng);
       data.append("priorityLevel", formData.priorityLevel);
-      data.append("issueType", formData.issueType);
       data.append("landmark", formData.landmark);
-      if (formData.photo) data.append("photo", formData.photo);
 
-      // Cookies are sent automatically with withCredentials: true
-      const response = await axios.post("/complaints", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
+      // ✅ Append all photos (multiple)
+      formData.photos.forEach((photo) => {
+        data.append("photos", photo);
       });
 
-      if (response.data.message) {
+      const response = await api.post("/complaints", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data?.success) {
         alert("✅ Complaint submitted successfully!");
         setFormData({
           issueTitle: "",
@@ -101,22 +115,26 @@ export default function ReportIssue() {
           landmark: "",
           description: "",
           location: null,
-          photo: null,
+          photos: [],
         });
-        setPreview(null);
+        setPreviews([]);
+        window.location.href = "/dashboard";
       } else {
         alert("❌ Failed to submit complaint!");
       }
     } catch (err) {
       console.error("Error submitting complaint:", err);
-      alert("❌ Failed to submit complaint!");
+      alert(err.response?.data?.message || "❌ Failed to submit complaint!");
+    } finally {
+      setTimeout(() => setSubmitting(false), 600);
     }
   };
 
+  // 📍 Map location selector
   function LocationMarker() {
     const map = useMapEvents({
       click(e) {
-        setFormData(prev => ({ ...prev, location: e.latlng }));
+        setFormData((prev) => ({ ...prev, location: e.latlng }));
       },
     });
 
@@ -138,10 +156,18 @@ export default function ReportIssue() {
           <span className="font-bold text-xl">CleanStreet</span>
         </div>
         <div className="flex flex-wrap gap-4 text-gray-700">
-          <a href="/dashboard" className="hover:text-blue-600 font-medium">Dashboard</a>
-          <a href="/report" className="hover:text-blue-600 font-medium">Report Issue</a>
-          <a href="/complaints" className="hover:text-blue-600 font-medium">View Complaints</a>
-          <a href="/profile" className="hover:text-blue-600 font-medium">Profile</a>
+          <a href="/dashboard" className="hover:text-blue-600 font-medium">
+            Dashboard
+          </a>
+          <a href="/report" className="hover:text-blue-600 font-medium">
+            Report Issue
+          </a>
+          <a href="/complaints" className="hover:text-blue-600 font-medium">
+            View Complaints
+          </a>
+          <a href="/profile" className="hover:text-blue-600 font-medium">
+            Profile
+          </a>
         </div>
         <button
           onClick={() => (window.location.href = "/login")}
@@ -158,27 +184,35 @@ export default function ReportIssue() {
             Report a Civic Issue
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Issue Title & Type */}
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
+            {/* Title & Type */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Issue Title</label>
+                <label htmlFor="issueTitle" className="block text-gray-700 font-medium mb-1">
+                  Issue Title
+                </label>
                 <input
-                  type="text"
+                  id="issueTitle"
                   name="issueTitle"
+                  type="text"
                   value={formData.issueTitle}
                   onChange={handleChange}
+                  autoComplete="on"
                   placeholder="Brief description of the issue"
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Issue Type</label>
+                <label htmlFor="issueType" className="block text-gray-700 font-medium mb-1">
+                  Issue Type
+                </label>
                 <select
+                  id="issueType"
                   name="issueType"
                   value={formData.issueType}
                   onChange={handleChange}
+                  autoComplete="on"
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                   required
                 >
@@ -194,11 +228,15 @@ export default function ReportIssue() {
             {/* Priority & Address */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Priority Level</label>
+                <label htmlFor="priorityLevel" className="block text-gray-700 font-medium mb-1">
+                  Priority Level
+                </label>
                 <select
+                  id="priorityLevel"
                   name="priorityLevel"
                   value={formData.priorityLevel}
                   onChange={handleChange}
+                  autoComplete="on"
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                   required
                 >
@@ -209,71 +247,106 @@ export default function ReportIssue() {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Address</label>
+                <label htmlFor="address" className="block text-gray-700 font-medium mb-1">
+                  Address
+                </label>
                 <input
-                  type="text"
+                  id="address"
                   name="address"
+                  type="text"
                   value={formData.address}
                   onChange={handleChange}
+                  autoComplete="street-address"
                   placeholder="Enter street address"
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                   required
                 />
-                {fetchingAddress && <p className="text-sm text-blue-600 mt-1">⏳ Locating on map...</p>}
-                {addressError && <p className="text-sm text-red-500 mt-1">{addressError}</p>}
+                {fetchingAddress && (
+                  <p className="text-sm text-blue-600 mt-1">⏳ Locating on map...</p>
+                )}
+                {addressError && (
+                  <p className="text-sm text-red-500 mt-1">{addressError}</p>
+                )}
               </div>
             </div>
 
-            {/* Landmark, Description */}
+            {/* Landmark & Description */}
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Nearby Landmark (Optional)</label>
+              <label htmlFor="landmark" className="block text-gray-700 font-medium mb-1">
+                Nearby Landmark (Optional)
+              </label>
               <input
-                type="text"
+                id="landmark"
                 name="landmark"
+                type="text"
                 value={formData.landmark}
                 onChange={handleChange}
                 placeholder="e.g., Near City Hall"
+                autoComplete="on"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Description</label>
+              <label htmlFor="description" className="block text-gray-700 font-medium mb-1">
+                Description
+              </label>
               <textarea
+                id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Describe the issue in detail..."
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                autoComplete="on"
                 rows="4"
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 required
               ></textarea>
             </div>
-            
-            {/* Photo Upload */}
+
+            {/* Multiple Photo Upload */}
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Upload Photo</label>
+              <label htmlFor="photos" className="block text-gray-700 font-medium mb-1">
+                Upload Photos (You can select multiple)
+              </label>
               <input
+                id="photos"
+                name="photos"
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
+                autoComplete="off"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
               />
-              {preview && (
-                <div className="mt-3 flex justify-center">
-                  <img src={preview} alt="Preview" className="w-48 h-48 object-cover rounded-lg shadow-md border" />
+              {previews.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {previews.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt={`Preview ${idx + 1}`}
+                      className="w-full h-40 object-cover rounded-lg shadow-md border"
+                    />
+                  ))}
                 </div>
               )}
             </div>
 
-            
-
             {/* Map */}
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Location on Map</label>
+              <label htmlFor="map" className="block text-gray-700 font-medium mb-1">
+                Location on Map
+              </label>
               <MapContainer
-                center={formData.location ? [formData.location.lat, formData.location.lng] : [13.0827, 80.2707]}
+                id="map"
+                center={
+                  formData.location
+                    ? [formData.location.lat, formData.location.lng]
+                    : [13.0827, 80.2707]
+                }
                 zoom={13}
-                scrollWheelZoom={true}
+                scrollWheelZoom
                 className="w-full h-60 rounded-lg"
               >
                 <TileLayer
@@ -284,16 +357,20 @@ export default function ReportIssue() {
               </MapContainer>
               {formData.location && (
                 <p className="mt-2 text-sm text-gray-600">
-                  📍 Lat: {formData.location.lat.toFixed(5)}, Lng: {formData.location.lng.toFixed(5)}
+                  📍 Lat: {formData.location.lat.toFixed(5)}, Lng:{" "}
+                  {formData.location.lng.toFixed(5)}
                 </p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg mt-4"
+              disabled={submitting}
+              className={`w-full ${
+                submitting ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+              } text-white font-medium py-2 px-4 rounded-lg mt-4`}
             >
-              Submit Complaint
+              {submitting ? "Submitting..." : "Submit Complaint"}
             </button>
           </form>
         </div>

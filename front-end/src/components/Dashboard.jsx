@@ -1,15 +1,31 @@
 // import React, { useEffect, useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
+// import { Link, useNavigate, useLocation } from "react-router-dom";
 // import {
 //   AlertTriangle,
 //   Clock,
 //   CheckCircle,
 //   RefreshCcw,
 //   UserCircle,
+//   XCircle,
+//   FileText,
 // } from "lucide-react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   Tooltip,
+//   ResponsiveContainer,
+//   Legend,
+// } from "recharts";
+// import jsPDF from "jspdf";
+// import "jspdf-autotable";
+// import { io } from "socket.io-client";
+// import api from "../api/axios"; // ✅ centralized axios instance
 
 // export default function Dashboard() {
 //   const navigate = useNavigate();
+//   const location = useLocation();
 
 //   const [stats, setStats] = useState({
 //     total: 0,
@@ -17,108 +33,223 @@
 //     resolved: 0,
 //     inProgress: 0,
 //   });
-
+//   const [user, setUser] = useState(null);
 //   const [activities, setActivities] = useState([]);
-//   const [user, setUser] = useState(null); // ✅ User state
+//   const [allComplaints, setAllComplaints] = useState([]);
+//   const [nearbyComplaints, setNearbyComplaints] = useState([]);
+//   const [viewingComplaint, setViewingComplaint] = useState(null);
 
-//   // ✅ Fetch logged-in user (with profilePic & username)
+//   const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
+//   // ✅ Real-time updates via Socket.IO
+//   useEffect(() => {
+//     const socket = io(SOCKET_URL, {
+//       transports: ["websocket"],
+//       reconnectionAttempts: 5,
+//       reconnectionDelay: 1000,
+//     });
+
+//     socket.on("connect", () => console.log("🟢 Connected to socket server"));
+//     socket.on("complaintUpdated", fetchDashboardData);
+//     socket.on("newComplaint", fetchDashboardData);
+//     socket.on("complaintDeleted", fetchDashboardData);
+//     socket.on("disconnect", () => console.log("🔴 Socket disconnected"));
+
+//     return () => socket.disconnect();
+//   }, []);
+
+//   // ✅ Fetch logged-in user
 //   useEffect(() => {
 //     const fetchUser = async () => {
 //       try {
-//         const res = await fetch("http://localhost:5000/api/auth/profile", {
-//           credentials: "include",
-//         });
-//         if (res.ok) {
-//           const data = await res.json();
-//           setUser(data); // Expect: { username, profilePic, ... }
-//         }
+//         const { data } = await api.get("/auth/profile");
+//         setUser(data);
 //       } catch (err) {
 //         console.error("Error fetching user:", err);
+//         navigate("/login");
 //       }
 //     };
 //     fetchUser();
-//   }, []);
+//   }, [navigate]);
 
-//   // ✅ Fetch dashboard stats
-//   useEffect(() => {
-//     const fetchDashboardData = async () => {
-//       try {
-// //const res = await fetch("http://localhost:5000/api/dashboard", {
-//         const res = await fetch("http://localhost:5000/api/complaints/dashboard", {
-
-//           credentials: "include",
-//         });
-//         const data = await res.json();
-//         setStats({
-//           total: data.total || 0,
-//           pending: data.pending || 0,
-//           resolved: data.resolved || 0,
-//           inProgress: data.inProgress || 0,
-//         });
-//         setActivities(data.activities || []);
-//       } catch (err) {
-//         console.error("Error fetching dashboard data:", err);
-//       }
-//     };
-//     fetchDashboardData();
-//   }, []);
-
-//   // ✅ Signout
-//   const handleLogout = async () => {
+//   // ✅ Fetch dashboard data dynamically
+//   const fetchDashboardData = async () => {
+//     if (!user) return;
 //     try {
-//       await fetch("http://localhost:5000/api/auth/logout", {
-//         method: "POST",
-//         credentials: "include",
+//       const { data: dataStats } = await api.get("/complaints/stats");
+//       setStats({
+//         total: dataStats.total || 0,
+//         pending: dataStats.pending || 0,
+//         resolved: dataStats.resolved || 0,
+//         inProgress: dataStats.inProgress || 0,
 //       });
-//       navigate("/"); // back to home
+
+//       if (user.role === "admin") {
+//         const { data } = await api.get("/complaints/all");
+//         setAllComplaints(data || []);
+//       } else if (user.role === "volunteer") {
+//         const { data: assigned } = await api.get("/complaints/assigned");
+//         setActivities(assigned);
+
+//         // ✅ Fetch nearby complaints
+//         let lat = user.lat;
+//         let lng = user.lng;
+//         if (!lat || !lng) {
+//           await new Promise((resolve) =>
+//             navigator.geolocation.getCurrentPosition((pos) => {
+//               lat = pos.coords.latitude;
+//               lng = pos.coords.longitude;
+//               resolve();
+//             })
+//           );
+//         }
+
+//         const { data: nearby } = await api.get(
+//           `/complaints/nearby?latitude=${lat}&longitude=${lng}`
+//         );
+//         setNearbyComplaints(nearby || []);
+//       } else {
+//         const { data } = await api.get("/complaints/my");
+//         setActivities(data || []);
+//       }
 //     } catch (err) {
-//       console.error("Logout failed:", err);
+//       console.error("Error fetching dashboard data:", err);
 //     }
 //   };
 
+//   useEffect(() => {
+//     if (user) fetchDashboardData();
+//   }, [user]);
+
+//   // ✅ Logout
+//   const handleLogout = async () => {
+//     try {
+//       await api.post("/auth/logout");
+//       sessionStorage.clear();
+//       localStorage.clear();
+//       navigate("/");
+//     } catch (err) {
+//       console.error("Logout error:", err);
+//     }
+//   };
+
+//   // ✅ Volunteer Action (In Progress / Resolved)
+//   const handleVolunteerAction = async (id, status) => {
+//     try {
+//       await api.put(`/complaints/${id}/status`, { status });
+//       setViewingComplaint(null);
+//       fetchDashboardData();
+//     } catch (err) {
+//       console.error("Volunteer action error:", err);
+//     }
+//   };
+
+//   // ✅ Volunteer Assign Complaint
+//   const handleAssignComplaint = async (id) => {
+//     try {
+//       await api.put(`/complaints/${id}/assign`);
+//       alert("Complaint assigned successfully!");
+//       setViewingComplaint(null);
+//       fetchDashboardData();
+//     } catch (err) {
+//       console.error("Error assigning complaint:", err);
+//     }
+//   };
+
+//   // ✅ Generate Admin PDF Report
+//   const generatePDF = () => {
+//     const doc = new jsPDF();
+//     doc.text("CleanStreet - Complaint Report", 14, 15);
+//     const tableData = allComplaints.map((c) => [
+//       c.title,
+//       c.status,
+//       c.user?.username || "N/A",
+//       new Date(c.createdAt).toLocaleDateString(),
+//     ]);
+//     doc.autoTable({
+//       head: [["Title", "Status", "User", "Date"]],
+//       body: tableData,
+//       startY: 25,
+//     });
+//     doc.save("Complaint_Report.pdf");
+//   };
+
+//   const StatusBadge = ({ status }) => {
+//     const colors = {
+//       Resolved: "bg-green-200 text-green-800",
+//       "In Progress": "bg-yellow-200 text-yellow-800",
+//       Pending: "bg-blue-200 text-blue-800",
+//     };
+//     return (
+//       <span
+//         className={`px-3 py-1 rounded-full text-xs font-semibold ${
+//           colors[status] || "bg-gray-200 text-gray-800"
+//         }`}
+//       >
+//         {status?.toUpperCase()}
+//       </span>
+//     );
+//   };
+
+//   const isActive = (path) =>
+//     location.pathname?.toLowerCase().includes(path.toLowerCase());
+
+//   if (!user)
+//     return (
+//       <div className="text-center mt-10 font-semibold">
+//         Loading Dashboard...
+//       </div>
+//     );
+
 //   return (
-//     <div className="min-h-screen bg-white text-black">
+//     <div className="min-h-screen bg-gray-100 text-black">
 //       {/* Navbar */}
-//       <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
-//         <div className="flex items-center space-x-2">
+//       <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-b bg-gray-50">
+//         <div className="flex items-center space-x-2 mb-2 md:mb-0">
 //           <img src="/logo.png" alt="logo" className="w-6 h-6" />
 //           <span className="font-bold text-xl">CleanStreet</span>
 //         </div>
-
-//         <nav className="hidden md:flex space-x-8 text-gray-700">
-//           <Link to="/dashboard" className="hover:underline">
+//         <nav className="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-8 text-gray-700 mb-2 md:mb-0">
+//           <Link
+//             to="/dashboard"
+//             className={`hover:underline font-medium ${
+//               isActive("/dashboard") ? "text-blue-600 font-bold" : ""
+//             }`}
+//           >
 //             Dashboard
 //           </Link>
-//           <Link to="/report" className="hover:underline">
+//           <Link
+//             to="/report"
+//             className={`hover:underline font-medium ${
+//               isActive("/report") ? "text-blue-600 font-bold" : ""
+//             }`}
+//           >
 //             Report Issue
 //           </Link>
-//           <Link to="/complaints" className="hover:underline">
+//           <Link
+//             to="/complaints"
+//             className={`hover:underline font-medium ${
+//               isActive("/complaints") ? "text-blue-600 font-bold" : ""
+//             }`}
+//           >
 //             View Complaints
 //           </Link>
 //         </nav>
-
-//         {/* ✅ User Profile - now clickable */}
 //         <div className="flex items-center space-x-4">
 //           <div
 //             className="flex items-center space-x-2 cursor-pointer"
 //             onClick={() => navigate("/profile")}
 //           >
 //             {user?.profilePic ? (
-//               // <img
-//               //   src={`http://localhost:5000/uploads/${user.profilePic}`} // Backend URL
-//               //   alt="profile"
-//               //   className="w-8 h-8 rounded-full object-cover"
-//               // />
-//                   <img
-//                     src={user.profilePic}
-//                     alt="profile"
-//                     className="w-8 h-8 rounded-full object-cover"
-//                   />
-
+//               <img
+//                 src={user.profilePic}
+//                 alt="profile"
+//                 className="w-8 h-8 rounded-full object-cover"
+//               />
 //             ) : (
 //               <UserCircle className="w-8 h-8" />
 //             )}
-//             <span className="font-medium">{user ? user.username : "Guest"}</span>
+//             <span className="font-medium">{user?.username || "Guest"}</span>
 //           </div>
 //           <button
 //             onClick={handleLogout}
@@ -129,134 +260,245 @@
 //         </div>
 //       </header>
 
-//       {/* Pink banner */}
+//       {/* Hero */}
 //       <div
 //         className="w-full h-40 rounded-2xl mt-4 mx-6 bg-cover bg-center flex flex-col justify-center px-6 text-white"
 //         style={{ backgroundImage: "url('/dashboard-bg.png')" }}
 //       >
 //         <h2 className="text-2xl font-semibold">Keep Our City Clean Together</h2>
 //         <p className="text-sm">
-//           Report issues, track progress, and help maintain our beautiful community
+//           Report issues, track progress, and help maintain our community
 //         </p>
 //       </div>
 
-//       {/* Main Content */}
-//       <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 px-6">
-//         {/* Left Section */}
-//         <div className="lg:col-span-2 space-y-6">
-//           {/* Stats */}
-//           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-//             <div className="border rounded-xl flex flex-col items-center py-3">
-//               <p className="text-sm">Total Issues</p>
-//               <p className="text-xl font-bold">{stats.total}</p>
-//               <AlertTriangle className="text-red-500 w-5 h-5" />
+//       {/* Stats Section */}
+//       <main className="flex flex-col items-center justify-start w-full mt-6 px-4 md:px-8 space-y-6">
+//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
+//           {[
+//             {
+//               label: "Total",
+//               count: stats.total,
+//               icon: AlertTriangle,
+//               color: "text-red-500",
+//             },
+//             {
+//               label: "Pending",
+//               count: stats.pending,
+//               icon: Clock,
+//               color: "text-blue-500",
+//             },
+//             {
+//               label: "Resolved",
+//               count: stats.resolved,
+//               icon: CheckCircle,
+//               color: "text-green-500",
+//             },
+//             {
+//               label: "In Progress",
+//               count: stats.inProgress,
+//               icon: RefreshCcw,
+//               color: "text-yellow-500",
+//             },
+//           ].map((item, i) => (
+//             <div
+//               key={i}
+//               className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6"
+//             >
+//               <p className="text-sm">{item.label}</p>
+//               <p className="text-3xl font-bold">{item.count}</p>
+//               <item.icon className={`${item.color} w-6 h-6 mt-2`} />
 //             </div>
-//             <div className="border rounded-xl flex flex-col items-center py-3">
-//               <p className="text-sm">Pending</p>
-//               <p className="text-xl font-bold">{stats.pending}</p>
-//               <Clock className="text-blue-500 w-5 h-5" />
-//             </div>
-//             <div className="border rounded-xl flex flex-col items-center py-3">
-//               <p className="text-sm">Resolved</p>
-//               <p className="text-xl font-bold">{stats.resolved}</p>
-//               <CheckCircle className="text-green-500 w-5 h-5" />
-//             </div>
-//             <div className="border rounded-xl flex flex-col items-center py-3">
-//               <p className="text-sm">In Progress</p>
-//               <p className="text-xl font-bold">{stats.inProgress}</p>
-//               <RefreshCcw className="text-green-600 w-5 h-5" />
-//             </div>
-//           </div>
+//           ))}
+//         </div>
 
-//           {/* Activity */}
-//           <div className="border rounded-xl p-4">
+//         {/* Admin / Volunteer / User Views */}
+//         {user.role === "admin" ? (
+//           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
 //             <div className="flex justify-between items-center mb-3">
-//               <h3 className="font-semibold">Activity</h3>
-//               <span className="text-green-600 text-sm font-medium">
-//                 Live Updates
-//               </span>
+//               <h3 className="font-semibold text-lg">Complaint Overview</h3>
+//               <button
+//                 onClick={generatePDF}
+//                 className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+//               >
+//                 <FileText className="w-4 h-4" /> Generate PDF
+//               </button>
 //             </div>
-
-//             {/* Activity List */}
-//             <div className="space-y-3">
-//               {activities.length > 0 ? (
-//                 activities.map((activity, index) => (
+//             <ResponsiveContainer width="100%" height={300}>
+//               <BarChart
+//                 data={[
+//                   { name: "Pending", value: stats.pending },
+//                   { name: "In Progress", value: stats.inProgress },
+//                   { name: "Resolved", value: stats.resolved },
+//                 ]}
+//               >
+//                 <XAxis dataKey="name" />
+//                 <YAxis />
+//                 <Tooltip />
+//                 <Legend />
+//                 <Bar dataKey="value" fill="#8884d8" />
+//               </BarChart>
+//             </ResponsiveContainer>
+//           </div>
+//         ) : (
+//           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+//             <h3 className="font-semibold text-lg mb-4">
+//               {user.role === "volunteer"
+//                 ? "My Assigned Complaints"
+//                 : "My Reported Complaints"}
+//             </h3>
+//             {activities.length > 0 ? (
+//               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//                 {activities.map((a) => (
 //                   <div
-//                     key={index}
-//                     className="flex items-center space-x-3 bg-gray-100 p-3 rounded-lg"
+//                     key={a._id}
+//                     className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
 //                   >
-//                     <UserCircle className="w-6 h-6 text-gray-700" />
-//                     <div className="flex-1">
-//                       <p className="font-medium">{activity.message}</p>
-//                       <p className="text-gray-500 text-sm">{activity.time}</p>
-//                     </div>
-//                     {activity.status === "resolved" ? (
-//                       <CheckCircle className="text-green-500 w-5 h-5" />
-//                     ) : activity.status === "pending" ? (
-//                       <Clock className="text-blue-500 w-5 h-5" />
-//                     ) : (
-//                       <AlertTriangle className="text-red-500 w-5 h-5" />
+//                     {a.photo && (
+//                       <img
+//                         src={a.photo}
+//                         alt="complaint"
+//                         className="w-full h-56 object-cover rounded-lg mb-3"
+//                       />
 //                     )}
+//                     <p className="font-semibold text-lg">{a.title}</p>
+//                     <p className="text-sm text-gray-600">{a.description}</p>
+//                     <div className="mt-2">
+//                       <StatusBadge status={a.status} />
+//                     </div>
 //                   </div>
-//                 ))
-//               ) : (
-//                 <p className="text-gray-500 text-sm">No recent activity</p>
-//               )}
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Right Section */}
-//         <div className="space-y-6">
-//           {/* Quick Action */}
-//           <div className="border rounded-xl p-4">
-//             <h3 className="font-semibold mb-4">Quick Action</h3>
-//             <button className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-full py-2 mb-2 hover:shadow-lg transition">
-//               + Report New Issue
-//             </button>
-//             <button className="w-full border rounded-full py-2 mb-2 hover:bg-gray-100">
-//               My Complaints
-//             </button>
-//             <button className="w-full border rounded-full py-2 hover:bg-gray-100">
-//               Recent Complaints
-//             </button>
-//           </div>
-
-//           {/* Support Team */}
-//           <div className="border rounded-xl p-4">
-//             <h3 className="font-semibold mb-4">Support Team</h3>
-//             <div className="flex items-center space-x-2 mb-4">
-//               <UserCircle className="w-6 h-6" />
-//               <div>
-//                 <p className="font-semibold">Clean Street Support</p>
-//                 <p className="text-sm text-gray-500">Available 24/7</p>
+//                 ))}
 //               </div>
-//             </div>
-//             <button className="w-full border rounded-full py-2 hover:bg-gray-100">
-//               Contact Support
+//             ) : (
+//               <p className="text-gray-500 text-sm text-center">
+//                 No complaints yet
+//               </p>
+//             )}
+//           </div>
+//         )}
+
+//         {/* Volunteer - Nearby Complaints */}
+//         {user.role === "volunteer" && (
+//           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+//             <h3 className="font-semibold text-lg mb-4">Nearby Complaints</h3>
+//             {nearbyComplaints.length > 0 ? (
+//               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//                 {nearbyComplaints.map((c) => (
+//                   <div
+//                     key={c._id}
+//                     className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
+//                   >
+//                     <p className="font-semibold text-lg">{c.title}</p>
+//                     <p className="text-sm text-gray-600">{c.description}</p>
+//                     {c.photo && (
+//                       <img
+//                         src={c.photo}
+//                         alt="complaint"
+//                         className="w-full h-48 object-cover rounded mt-3"
+//                       />
+//                     )}
+//                     <button
+//                       onClick={() => setViewingComplaint(c)}
+//                       className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
+//                     >
+//                       View
+//                     </button>
+//                   </div>
+//                 ))}
+//               </div>
+//             ) : (
+//               <p className="text-gray-500 text-sm text-center">
+//                 No nearby complaints
+//               </p>
+//             )}
+//           </div>
+//         )}
+//       </main>
+
+//       {/* View Complaint Modal */}
+//       {viewingComplaint && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+//           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+//             <button
+//               onClick={() => setViewingComplaint(null)}
+//               className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+//             >
+//               <XCircle className="w-6 h-6" />
 //             </button>
+//             <h3 className="text-xl font-semibold mb-2">
+//               {viewingComplaint.title}
+//             </h3>
+//             <p className="text-gray-700 mb-2">{viewingComplaint.description}</p>
+//             <p className="text-gray-500 mb-2">
+//               <strong>Location:</strong>{" "}
+//               {viewingComplaint.location?.address || "Not specified"}
+//             </p>
+//             {viewingComplaint.photo && (
+//               <img
+//                 src={viewingComplaint.photo}
+//                 alt="complaint"
+//                 className="w-full h-64 object-cover rounded mb-4"
+//               />
+//             )}
+//             <StatusBadge status={viewingComplaint.status} />
+//             <div className="flex gap-2 mt-4 flex-wrap">
+//               <button
+//                 className="px-3 py-1 rounded bg-purple-500 text-white hover:bg-purple-600"
+//                 onClick={() =>
+//                   handleVolunteerAction(viewingComplaint._id, "In Progress")
+//                 }
+//               >
+//                 In Progress
+//               </button>
+//               <button
+//                 className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600"
+//                 onClick={() =>
+//                   handleVolunteerAction(viewingComplaint._id, "Resolved")
+//                 }
+//               >
+//                 Resolve
+//               </button>
+//               <button
+//                 className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+//                 onClick={() => handleAssignComplaint(viewingComplaint._id)}
+//               >
+//                 Assign
+//               </button>
+//             </div>
 //           </div>
 //         </div>
-//       </main>
+//       )}
 //     </div>
 //   );
 // }
 
-
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
   Clock,
   CheckCircle,
   RefreshCcw,
   UserCircle,
-  Edit,
-  Trash2,
+  XCircle,
+  FileText,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { io } from "socket.io-client";
+import api from "../api/axios"; // ✅ centralized axios instance
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [stats, setStats] = useState({
     total: 0,
@@ -264,126 +506,216 @@ export default function Dashboard() {
     resolved: 0,
     inProgress: 0,
   });
-
-  const [activities, setActivities] = useState([]);
   const [user, setUser] = useState(null);
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", description: "" });
+  const [activities, setActivities] = useState([]);
+  const [allComplaints, setAllComplaints] = useState([]);
+  const [nearbyComplaints, setNearbyComplaints] = useState([]);
+  const [viewingComplaint, setViewingComplaint] = useState(null);
 
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
+  // ✅ Real-time updates via Socket.IO
+  useEffect(() => {
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socket.on("connect", () => console.log("🟢 Connected to socket server"));
+    socket.on("complaintUpdated", fetchDashboardData);
+    socket.on("newComplaint", fetchDashboardData);
+    socket.on("complaintDeleted", fetchDashboardData);
+    socket.on("disconnect", () => console.log("🔴 Socket disconnected"));
+
+    return () => socket.disconnect();
+  }, []);
+
+  // ✅ Fetch logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/profile", {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
+        const { data } = await api.get("/auth/profile");
+        setUser(data);
       } catch (err) {
         console.error("Error fetching user:", err);
+        navigate("/login");
       }
     };
     fetchUser();
-  }, []);
+  }, [navigate]);
 
+  // ✅ Fetch dashboard data dynamically
   const fetchDashboardData = async () => {
+    if (!user) return;
     try {
-      const res = await fetch("http://localhost:5000/api/complaints/dashboard", {
-        credentials: "include",
-      });
-      const data = await res.json();
+      const { data: dataStats } = await api.get("/complaints/stats");
       setStats({
-        total: data.total || 0,
-        pending: data.pending || 0,
-        resolved: data.resolved || 0,
-        inProgress: data.inProgress || 0,
+        total: dataStats.total || 0,
+        pending: dataStats.pending || 0,
+        resolved: dataStats.resolved || 0,
+        inProgress: dataStats.inProgress || 0,
       });
-      setActivities(data.activities || []);
+
+      if (user.role === "admin") {
+        const { data } = await api.get("/complaints/all");
+        setAllComplaints(data || []);
+      } else if (user.role === "volunteer") {
+        const { data: assigned } = await api.get("/complaints/assigned");
+        setActivities(assigned);
+
+        // ✅ Fetch nearby complaints
+        let lat = user.lat;
+        let lng = user.lng;
+        if (!lat || !lng) {
+          await new Promise((resolve) =>
+            navigator.geolocation.getCurrentPosition((pos) => {
+              lat = pos.coords.latitude;
+              lng = pos.coords.longitude;
+              resolve();
+            })
+          );
+        }
+
+        const { data: nearby } = await api.get(
+          `/complaints/nearby?latitude=${lat}&longitude=${lng}`
+        );
+        setNearbyComplaints(nearby || []);
+      } else {
+        const { data } = await api.get("/complaints/my");
+        setActivities(data || []);
+      }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user) fetchDashboardData();
+  }, [user]);
 
+  // ✅ Logout
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await api.post("/auth/logout");
+      sessionStorage.clear();
+      localStorage.clear();
       navigate("/");
     } catch (err) {
-      console.error("Logout failed:", err);
+      console.error("Logout error:", err);
     }
   };
 
-  // ✏️ Start editing
-  const handleEditClick = (activity) => {
-    setEditingId(activity._id);
-    setEditForm({ title: activity.message, description: "" });
+  // ✅ Volunteer Action (In Progress / Resolved)
+  const handleVolunteerAction = async (id, status) => {
+    try {
+      await api.put(`/complaints/${id}/status`, { status });
+      setViewingComplaint(null);
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Volunteer action error:", err);
+    }
   };
 
-  // 💾 Save changes
-  const handleSaveEdit = async (id) => {
+  // ✅ Volunteer Assign Complaint (fixed to match backend controller)
+  const handleAssignComplaint = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/complaints/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(editForm),
-      });
-      if (res.ok) {
-        await fetchDashboardData();
-        setEditingId(null);
-        alert("Complaint updated successfully");
+      const res = await api.put(`/complaints/${id}/assign`);
+      if (res.status === 200) {
+        alert(res.data.message || "Complaint assigned successfully!");
+        setViewingComplaint(null);
+        fetchDashboardData();
+      } else {
+        alert("Failed to assign complaint.");
       }
     } catch (err) {
-      console.error("Error updating complaint:", err);
+      console.error("Error assigning complaint:", err);
+      alert(
+        err.response?.data?.message ||
+          "Error assigning complaint. Maybe already assigned."
+      );
     }
   };
 
-  // 🗑️ Delete complaint
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this complaint?")) return;
-    try {
-      const res = await fetch(`http://localhost:5000/api/complaints/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
-        await fetchDashboardData();
-        alert("Complaint deleted successfully");
-      }
-    } catch (err) {
-      console.error("Error deleting complaint:", err);
-    }
+  // ✅ Generate Admin PDF Report
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.text("CleanStreet - Complaint Report", 14, 15);
+    const tableData = allComplaints.map((c) => [
+      c.title,
+      c.status,
+      c.user?.username || "N/A",
+      new Date(c.createdAt).toLocaleDateString(),
+    ]);
+    doc.autoTable({
+      head: [["Title", "Status", "User", "Date"]],
+      body: tableData,
+      startY: 25,
+    });
+    doc.save("Complaint_Report.pdf");
   };
+
+  const StatusBadge = ({ status }) => {
+    const colors = {
+      Resolved: "bg-green-200 text-green-800",
+      "In Progress": "bg-yellow-200 text-yellow-800",
+      Pending: "bg-blue-200 text-blue-800",
+    };
+    return (
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          colors[status] || "bg-gray-200 text-gray-800"
+        }`}
+      >
+        {status?.toUpperCase()}
+      </span>
+    );
+  };
+
+  const isActive = (path) =>
+    location.pathname?.toLowerCase().includes(path.toLowerCase());
+
+  if (!user)
+    return (
+      <div className="text-center mt-10 font-semibold">
+        Loading Dashboard...
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-gray-100 text-black">
       {/* Navbar */}
-      <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
-        <div className="flex items-center space-x-2">
+      <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-b bg-gray-50">
+        <div className="flex items-center space-x-2 mb-2 md:mb-0">
           <img src="/logo.png" alt="logo" className="w-6 h-6" />
           <span className="font-bold text-xl">CleanStreet</span>
         </div>
-
-        <nav className="hidden md:flex space-x-8 text-gray-700">
-          <Link to="/dashboard" className="hover:underline">
+        <nav className="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-8 text-gray-700 mb-2 md:mb-0">
+          <Link
+            to="/dashboard"
+            className={`hover:underline font-medium ${
+              isActive("/dashboard") ? "text-blue-600 font-bold" : ""
+            }`}
+          >
             Dashboard
           </Link>
-          <Link to="/report" className="hover:underline">
+          <Link
+            to="/report"
+            className={`hover:underline font-medium ${
+              isActive("/report") ? "text-blue-600 font-bold" : ""
+            }`}
+          >
             Report Issue
           </Link>
-          <Link to="/complaints" className="hover:underline">
+          <Link
+            to="/complaints"
+            className={`hover:underline font-medium ${
+              isActive("/complaints") ? "text-blue-600 font-bold" : ""
+            }`}
+          >
             View Complaints
           </Link>
         </nav>
-
         <div className="flex items-center space-x-4">
           <div
             className="flex items-center space-x-2 cursor-pointer"
@@ -398,7 +730,7 @@ export default function Dashboard() {
             ) : (
               <UserCircle className="w-8 h-8" />
             )}
-            <span className="font-medium">{user ? user.username : "Guest"}</span>
+            <span className="font-medium">{user?.username || "Guest"}</span>
           </div>
           <button
             onClick={handleLogout}
@@ -409,155 +741,213 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Hero */}
       <div
         className="w-full h-40 rounded-2xl mt-4 mx-6 bg-cover bg-center flex flex-col justify-center px-6 text-white"
         style={{ backgroundImage: "url('/dashboard-bg.png')" }}
       >
         <h2 className="text-2xl font-semibold">Keep Our City Clean Together</h2>
         <p className="text-sm">
-          Report issues, track progress, and help maintain our beautiful community
+          Report issues, track progress, and help maintain our community
         </p>
       </div>
 
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 px-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="border rounded-xl flex flex-col items-center py-3">
-              <p className="text-sm">Total Issues</p>
-              <p className="text-xl font-bold">{stats.total}</p>
-              <AlertTriangle className="text-red-500 w-5 h-5" />
+      {/* Stats Section */}
+      <main className="flex flex-col items-center justify-start w-full mt-6 px-4 md:px-8 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
+          {[
+            {
+              label: "Total",
+              count: stats.total,
+              icon: AlertTriangle,
+              color: "text-red-500",
+            },
+            {
+              label: "Pending",
+              count: stats.pending,
+              icon: Clock,
+              color: "text-blue-500",
+            },
+            {
+              label: "Resolved",
+              count: stats.resolved,
+              icon: CheckCircle,
+              color: "text-green-500",
+            },
+            {
+              label: "In Progress",
+              count: stats.inProgress,
+              icon: RefreshCcw,
+              color: "text-yellow-500",
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6"
+            >
+              <p className="text-sm">{item.label}</p>
+              <p className="text-3xl font-bold">{item.count}</p>
+              <item.icon className={`${item.color} w-6 h-6 mt-2`} />
             </div>
-            <div className="border rounded-xl flex flex-col items-center py-3">
-              <p className="text-sm">Pending</p>
-              <p className="text-xl font-bold">{stats.pending}</p>
-              <Clock className="text-blue-500 w-5 h-5" />
-            </div>
-            <div className="border rounded-xl flex flex-col items-center py-3">
-              <p className="text-sm">Resolved</p>
-              <p className="text-xl font-bold">{stats.resolved}</p>
-              <CheckCircle className="text-green-500 w-5 h-5" />
-            </div>
-            <div className="border rounded-xl flex flex-col items-center py-3">
-              <p className="text-sm">In Progress</p>
-              <p className="text-xl font-bold">{stats.inProgress}</p>
-              <RefreshCcw className="text-green-600 w-5 h-5" />
-            </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Activity */}
-          <div className="border rounded-xl p-4">
+        {/* Admin / Volunteer / User Views */}
+        {user.role === "admin" ? (
+          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold">Activity</h3>
-              <span className="text-green-600 text-sm font-medium">Live Updates</span>
+              <h3 className="font-semibold text-lg">Complaint Overview</h3>
+              <button
+                onClick={generatePDF}
+                className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                <FileText className="w-4 h-4" /> Generate PDF
+              </button>
             </div>
-
-            <div className="space-y-3">
-              {activities.length > 0 ? (
-                activities.map((activity, index) => (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={[
+                  { name: "Pending", value: stats.pending },
+                  { name: "In Progress", value: stats.inProgress },
+                  { name: "Resolved", value: stats.resolved },
+                ]}
+              >
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+            <h3 className="font-semibold text-lg mb-4">
+              {user.role === "volunteer"
+                ? "My Assigned Complaints"
+                : "My Reported Complaints"}
+            </h3>
+            {activities.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activities.map((a) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between bg-gray-100 p-3 rounded-lg"
+                    key={a._id}
+                    className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
                   >
-                    <div className="flex items-center space-x-3">
-                      <UserCircle className="w-6 h-6 text-gray-700" />
-                      <div>
-                        {editingId === activity._id ? (
-                          <>
-                            <input
-                              type="text"
-                              className="border rounded p-1 text-sm w-full mb-1"
-                              value={editForm.title}
-                              onChange={(e) =>
-                                setEditForm({ ...editForm, title: e.target.value })
-                              }
-                            />
-                            <textarea
-                              className="border rounded p-1 text-sm w-full"
-                              placeholder="Update description"
-                              value={editForm.description}
-                              onChange={(e) =>
-                                setEditForm({ ...editForm, description: e.target.value })
-                              }
-                            />
-                            <button
-                              onClick={() => handleSaveEdit(activity._id)}
-                              className="bg-blue-500 text-white px-3 py-1 rounded mt-2 text-sm"
-                            >
-                              Save
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-medium">{activity.message}</p>
-                            <p className="text-gray-500 text-sm">{activity.time}</p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEditClick(activity)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(activity._id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    {a.photo && (
+                      <img
+                        src={a.photo}
+                        alt="complaint"
+                        className="w-full h-56 object-cover rounded-lg mb-3"
+                      />
+                    )}
+                    <p className="font-semibold text-lg">{a.title}</p>
+                    <p className="text-sm text-gray-600">{a.description}</p>
+                    <div className="mt-2">
+                      <StatusBadge status={a.status} />
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">No recent activity</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Section */}
-        <div className="space-y-6">
-          <div className="border rounded-xl p-4">
-            <h3 className="font-semibold mb-4">Quick Action</h3>
-            <button
-              onClick={() => navigate("/report")}
-              className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-full py-2 mb-2 hover:shadow-lg transition"
-            >
-              + Report New Issue
-            </button>
-            <button
-              onClick={() => navigate("/complaints")}
-              className="w-full border rounded-full py-2 mb-2 hover:bg-gray-100"
-            >
-              My Complaints
-            </button>
-            <button
-              onClick={() => navigate("/complaints")}
-              className="w-full border rounded-full py-2 hover:bg-gray-100"
-            >
-              Recent Complaints
-            </button>
-          </div>
-
-          <div className="border rounded-xl p-4">
-            <h3 className="font-semibold mb-4">Support Team</h3>
-            <div className="flex items-center space-x-2 mb-4">
-              <UserCircle className="w-6 h-6" />
-              <div>
-                <p className="font-semibold">Clean Street Support</p>
-                <p className="text-sm text-gray-500">Available 24/7</p>
+                ))}
               </div>
-            </div>
-            <button className="w-full border rounded-full py-2 hover:bg-gray-100">
-              Contact Support
+            ) : (
+              <p className="text-gray-500 text-sm text-center">
+                No complaints yet
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Volunteer - Nearby Complaints */}
+        {user.role === "volunteer" && (
+          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+            <h3 className="font-semibold text-lg mb-4">Nearby Complaints</h3>
+            {nearbyComplaints.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {nearbyComplaints.map((c) => (
+                  <div
+                    key={c._id}
+                    className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
+                  >
+                    <p className="font-semibold text-lg">{c.title}</p>
+                    <p className="text-sm text-gray-600">{c.description}</p>
+                    {c.photo && (
+                      <img
+                        src={c.photo}
+                        alt="complaint"
+                        className="w-full h-48 object-cover rounded mt-3"
+                      />
+                    )}
+                    <button
+                      onClick={() => setViewingComplaint(c)}
+                      className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm text-center">
+                No nearby complaints
+              </p>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* View Complaint Modal */}
+      {viewingComplaint && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button
+              onClick={() => setViewingComplaint(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+            >
+              <XCircle className="w-6 h-6" />
             </button>
+            <h3 className="text-xl font-semibold mb-2">
+              {viewingComplaint.title}
+            </h3>
+            <p className="text-gray-700 mb-2">{viewingComplaint.description}</p>
+            <p className="text-gray-500 mb-2">
+              <strong>Location:</strong>{" "}
+              {viewingComplaint.location?.address || "Not specified"}
+            </p>
+            {viewingComplaint.photo && (
+              <img
+                src={viewingComplaint.photo}
+                alt="complaint"
+                className="w-full h-64 object-cover rounded mb-4"
+              />
+            )}
+            <StatusBadge status={viewingComplaint.status} />
+            <div className="flex gap-2 mt-4 flex-wrap">
+              <button
+                className="px-3 py-1 rounded bg-purple-500 text-white hover:bg-purple-600"
+                onClick={() =>
+                  handleVolunteerAction(viewingComplaint._id, "In Progress")
+                }
+              >
+                In Progress
+              </button>
+              <button
+                className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600"
+                onClick={() =>
+                  handleVolunteerAction(viewingComplaint._id, "Resolved")
+                }
+              >
+                Resolve
+              </button>
+              <button
+                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+                onClick={() => handleAssignComplaint(viewingComplaint._id)}
+              >
+                Assign
+              </button>
+            </div>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }

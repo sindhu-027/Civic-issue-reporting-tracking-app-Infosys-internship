@@ -1,24 +1,47 @@
-import express from "express"; 
-import multer from "multer"; 
-import { 
-  registerUser, 
-  loginUser, 
-  getProfile, 
-  updateProfile, 
-  changePassword, 
-} from "../controllers/authController.js"; 
-import { verifyToken } from "../middleware/authMiddleware.js"; 
 
-const router = express.Router(); // Multer setup for temporary file storage 
-const upload = multer({ dest: "uploads/" }); 
+import express from "express";
+import multer from "multer";
+import {
+  registerUser,
+  loginUser,
+  getProfile,
+  updateProfile,
+  changePassword,
+  logoutUser,
+} from "../controllers/authController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
-router.post("/register", registerUser); 
-router.post("/login", loginUser); 
-router.get("/profile", verifyToken, getProfile); 
+const router = express.Router();
 
-// ✅ Profile update via text fields (form data) 
+// ✅ File upload (profile pic)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// ✅ Public routes
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+
+// ✅ Token check route (for LandingPage/Dashboard)
+router.get("/check", verifyToken, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "User authenticated successfully",
+    user: req.user,
+  });
+});
+
+// ✅ Protected routes
+router.get("/profile", verifyToken, getProfile);
 router.put("/profile/update", verifyToken, updateProfile);
+router.put(
+  "/profile/upload",
+  verifyToken,
+  upload.single("profilePic"),
+  updateProfile
+);
+router.put("/change-password", verifyToken, changePassword);
 
-// ✅ Profile picture upload route 
-router.put("/profile/upload", verifyToken, upload.single("profilePic"), updateProfile); 
-router.put("/change-password", verifyToken, changePassword); export default router;
+// ✅ Logout route
+router.post("/logout", logoutUser);
+
+export default router;
