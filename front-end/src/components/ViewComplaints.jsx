@@ -130,7 +130,7 @@ const handleVote = async (id, type) => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       {/* ✅ Navbar */}
-      <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
+      {/* <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
         <h1 className="text-xl font-bold text-green-700">Clean Street</h1>
         <div className="flex gap-4">
           <button
@@ -152,7 +152,42 @@ const handleVote = async (id, type) => {
             Profile
           </button>
         </div>
-      </div>
+      </div> */}
+      {/* ✅ Navbar with logo */}
+<div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
+  <div className="flex items-center gap-3">
+    <img
+      src="/logo.png"
+      alt="Clean Street Logo"
+      className="w-10 h-10 rounded-full object-cover"
+    />
+    <h1 className="text-2xl font-bold text-black tracking-wide">
+      Clean Street
+    </h1>
+  </div>
+
+  <div className="flex gap-6">
+    <button
+      onClick={() => (window.location.href = "/dashboard")}
+      className="text-gray-800 hover:text-blue-600 font-semibold transition-colors"
+    >
+      Dashboard
+    </button>
+    <button
+      onClick={() => (window.location.href = "/report")}
+      className="text-gray-800 hover:text-blue-600 font-semibold transition-colors"
+    >
+      Report Issue
+    </button>
+    <button
+      onClick={() => (window.location.href = "/profile")}
+      className="text-gray-800 hover:text-blue-600 font-semibold transition-colors"
+    >
+      Profile
+    </button>
+  </div>
+</div>
+
 
       {/* ✅ Complaints Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -338,3 +373,6 @@ const handleVote = async (id, type) => {
     </div>
   );
 }
+
+
+

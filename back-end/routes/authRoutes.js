@@ -8,6 +8,7 @@ import {
   updateProfile,
   changePassword,
   logoutUser,
+  getAllUsers
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
@@ -41,7 +42,10 @@ router.put(
 );
 router.put("/change-password", verifyToken, changePassword);
 
+
+// ✅ Admin Route: Get All Users
+router.get("/all", verifyToken, getAllUsers);
+
 // ✅ Logout route
 router.post("/logout", logoutUser);
-
 export default router;

@@ -1,3 +1,4 @@
+
 // import React, { useEffect, useState } from "react";
 // import { Link, useNavigate, useLocation } from "react-router-dom";
 // import {
@@ -21,7 +22,7 @@
 // import jsPDF from "jspdf";
 // import "jspdf-autotable";
 // import { io } from "socket.io-client";
-// import api from "../api/axios"; // ✅ centralized axios instance
+// import api from "../api/axios";
 
 // export default function Dashboard() {
 //   const navigate = useNavigate();
@@ -41,7 +42,7 @@
 
 //   const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-//   // ✅ Real-time updates via Socket.IO
+//   // 🔌 Socket.io
 //   useEffect(() => {
 //     const socket = io(SOCKET_URL, {
 //       transports: ["websocket"],
@@ -58,7 +59,7 @@
 //     return () => socket.disconnect();
 //   }, []);
 
-//   // ✅ Fetch logged-in user
+//   // 👤 Fetch logged-in user
 //   useEffect(() => {
 //     const fetchUser = async () => {
 //       try {
@@ -72,7 +73,7 @@
 //     fetchUser();
 //   }, [navigate]);
 
-//   // ✅ Fetch dashboard data dynamically
+//   // 📊 Fetch dashboard data
 //   const fetchDashboardData = async () => {
 //     if (!user) return;
 //     try {
@@ -91,7 +92,6 @@
 //         const { data: assigned } = await api.get("/complaints/assigned");
 //         setActivities(assigned);
 
-//         // ✅ Fetch nearby complaints
 //         let lat = user.lat;
 //         let lng = user.lng;
 //         if (!lat || !lng) {
@@ -103,7 +103,6 @@
 //             })
 //           );
 //         }
-
 //         const { data: nearby } = await api.get(
 //           `/complaints/nearby?latitude=${lat}&longitude=${lng}`
 //         );
@@ -121,7 +120,7 @@
 //     if (user) fetchDashboardData();
 //   }, [user]);
 
-//   // ✅ Logout
+//   // 🚪 Logout
 //   const handleLogout = async () => {
 //     try {
 //       await api.post("/auth/logout");
@@ -133,7 +132,7 @@
 //     }
 //   };
 
-//   // ✅ Volunteer Action (In Progress / Resolved)
+//   // 👷 Volunteer Actions
 //   const handleVolunteerAction = async (id, status) => {
 //     try {
 //       await api.put(`/complaints/${id}/status`, { status });
@@ -141,22 +140,45 @@
 //       fetchDashboardData();
 //     } catch (err) {
 //       console.error("Volunteer action error:", err);
+//       alert(err.response?.data?.message || "Error updating complaint status.");
 //     }
 //   };
 
-//   // ✅ Volunteer Assign Complaint
 //   const handleAssignComplaint = async (id) => {
 //     try {
-//       await api.put(`/complaints/${id}/assign`);
-//       alert("Complaint assigned successfully!");
-//       setViewingComplaint(null);
-//       fetchDashboardData();
+//       const res = await api.put(`/complaints/${id}/assign`);
+//       if (res.status === 200) {
+//         alert(res.data.message || "Complaint assigned successfully!");
+//         setViewingComplaint(null);
+//         fetchDashboardData();
+//       }
 //     } catch (err) {
 //       console.error("Error assigning complaint:", err);
+//       alert(
+//         err.response?.data?.message ||
+//           "Error assigning complaint. Maybe already assigned."
+//       );
 //     }
 //   };
 
-//   // ✅ Generate Admin PDF Report
+//   const handleUnassignComplaint = async (id) => {
+//     try {
+//       const res = await api.put(`/complaints/${id}/unassign`);
+//       if (res.status === 200) {
+//         const unassignedComplaint = res.data.complaint;
+//         // Move back to nearby list
+//         setActivities((prev) => prev.filter((c) => c._id !== id));
+//         setNearbyComplaints((prev) => [unassignedComplaint, ...prev]);
+//         setViewingComplaint(null);
+//         alert(res.data.message || "Complaint unassigned successfully!");
+//       }
+//     } catch (err) {
+//       console.error("Error unassigning complaint:", err);
+//       alert(err.response?.data?.message || "Error unassigning complaint.");
+//     }
+//   };
+
+//   // 📄 Generate PDF
 //   const generatePDF = () => {
 //     const doc = new jsPDF();
 //     doc.text("CleanStreet - Complaint Report", 14, 15);
@@ -174,6 +196,7 @@
 //     doc.save("Complaint_Report.pdf");
 //   };
 
+//   // 🟩 Status Badge
 //   const StatusBadge = ({ status }) => {
 //     const colors = {
 //       Resolved: "bg-green-200 text-green-800",
@@ -201,10 +224,11 @@
 //       </div>
 //     );
 
+//   // ---------------- JSX ----------------
 //   return (
 //     <div className="min-h-screen bg-gray-100 text-black">
 //       {/* Navbar */}
-//       <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-b bg-gray-50">
+//       <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 shadow-md bg-gray-50">
 //         <div className="flex items-center space-x-2 mb-2 md:mb-0">
 //           <img src="/logo.png" alt="logo" className="w-6 h-6" />
 //           <span className="font-bold text-xl">CleanStreet</span>
@@ -273,37 +297,15 @@
 
 //       {/* Stats Section */}
 //       <main className="flex flex-col items-center justify-start w-full mt-6 px-4 md:px-8 space-y-6">
+//         {/* Cards */}
 //         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
 //           {[
-//             {
-//               label: "Total",
-//               count: stats.total,
-//               icon: AlertTriangle,
-//               color: "text-red-500",
-//             },
-//             {
-//               label: "Pending",
-//               count: stats.pending,
-//               icon: Clock,
-//               color: "text-blue-500",
-//             },
-//             {
-//               label: "Resolved",
-//               count: stats.resolved,
-//               icon: CheckCircle,
-//               color: "text-green-500",
-//             },
-//             {
-//               label: "In Progress",
-//               count: stats.inProgress,
-//               icon: RefreshCcw,
-//               color: "text-yellow-500",
-//             },
+//             { label: "Total", count: stats.total, icon: AlertTriangle, color: "text-red-500" },
+//             { label: "Pending", count: stats.pending, icon: Clock, color: "text-blue-500" },
+//             { label: "Resolved", count: stats.resolved, icon: CheckCircle, color: "text-green-500" },
+//             { label: "In Progress", count: stats.inProgress, icon: RefreshCcw, color: "text-yellow-500" },
 //           ].map((item, i) => (
-//             <div
-//               key={i}
-//               className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6"
-//             >
+//             <div key={i} className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6">
 //               <p className="text-sm">{item.label}</p>
 //               <p className="text-3xl font-bold">{item.count}</p>
 //               <item.icon className={`${item.color} w-6 h-6 mt-2`} />
@@ -311,7 +313,7 @@
 //           ))}
 //         </div>
 
-//         {/* Admin / Volunteer / User Views */}
+//         {/* Volunteer / Admin */}
 //         {user.role === "admin" ? (
 //           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
 //             <div className="flex justify-between items-center mb-3">
@@ -342,74 +344,102 @@
 //         ) : (
 //           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
 //             <h3 className="font-semibold text-lg mb-4">
-//               {user.role === "volunteer"
-//                 ? "My Assigned Complaints"
-//                 : "My Reported Complaints"}
+//               {user.role === "volunteer" ? "My Assigned Complaints" : "My Reported Complaints"}
 //             </h3>
+
 //             {activities.length > 0 ? (
 //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 //                 {activities.map((a) => (
-//                   <div
-//                     key={a._id}
-//                     className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
-//                   >
-//                     {a.photo && (
-//                       <img
-//                         src={a.photo}
-//                         alt="complaint"
-//                         className="w-full h-56 object-cover rounded-lg mb-3"
-//                       />
-//                     )}
+//                   <div key={a._id} className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col">
+//                     {a.photo && <img src={a.photo} alt="complaint" className="w-full h-56 object-cover rounded-lg mb-3" />}
 //                     <p className="font-semibold text-lg">{a.title}</p>
 //                     <p className="text-sm text-gray-600">{a.description}</p>
-//                     <div className="mt-2">
+//                     <p className="text-sm text-gray-500 mt-1">
+//                       <strong>Location:</strong>{" "}
+//                       {a.location?.address ||
+//                         a.location ||
+//                         (a.latitude && a.longitude
+//                           ? `${a.latitude.toFixed(4)}, ${a.longitude.toFixed(4)}`
+//                           : "Not specified")}
+//                     </p>
+//                     <p className="text-sm text-gray-500 mt-1">
+//                       <strong>Reported By:</strong> {a.user?.username || "N/A"}
+//                     </p>
+//                     {a.volunteer && (
+//                       <p className="text-sm text-gray-500 mt-1">
+//                         <strong>Volunteer:</strong> {a.volunteer.username || "N/A"}
+//                       </p>
+//                     )}
+//                     <p className="text-sm text-gray-500 mt-1">
+//                       <strong>Created At:</strong> {new Date(a.createdAt).toLocaleString()}
+//                     </p>
+//                     <div className="mt-2 flex gap-2 flex-wrap">
 //                       <StatusBadge status={a.status} />
+//                       {user.role === "volunteer" && (
+//                         <>
+//                           <button
+//                             className="px-2 py-1 rounded bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
+//                             onClick={() => handleVolunteerAction(a._id, "In Progress")}
+//                           >
+//                             In Progress
+//                           </button>
+//                           <button
+//                             className="px-2 py-1 rounded bg-green-500 text-white hover:bg-green-600 text-sm"
+//                             onClick={() => handleVolunteerAction(a._id, "Resolved")}
+//                           >
+//                             Resolve
+//                           </button>
+//                           <button
+//                             className="px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 text-sm"
+//                             onClick={() => handleUnassignComplaint(a._id)}
+//                           >
+//                             Unassign
+//                           </button>
+//                         </>
+//                       )}
 //                     </div>
 //                   </div>
 //                 ))}
 //               </div>
 //             ) : (
-//               <p className="text-gray-500 text-sm text-center">
-//                 No complaints yet
-//               </p>
+//               <p className="text-gray-500 text-sm text-center">No complaints yet</p>
 //             )}
 //           </div>
 //         )}
 
-//         {/* Volunteer - Nearby Complaints */}
-//         {user.role === "volunteer" && (
-//           <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+//         {/* Volunteer Nearby Complaints */}
+//         {user.role === "volunteer" && nearbyComplaints.length > 0 && (
+//           <div className="bg-white rounded-2xl shadow-lg w-full p-6 mt-6">
 //             <h3 className="font-semibold text-lg mb-4">Nearby Complaints</h3>
-//             {nearbyComplaints.length > 0 ? (
-//               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//                 {nearbyComplaints.map((c) => (
-//                   <div
-//                     key={c._id}
-//                     className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
+//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//               {nearbyComplaints.map((c) => (
+//                 <div key={c._id} className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col">
+//                   {c.photo && <img src={c.photo} alt="complaint" className="w-full h-48 object-cover rounded mb-3" />}
+//                   <p className="font-semibold text-lg">{c.title}</p>
+//                   <p className="text-sm text-gray-600">{c.description}</p>
+//                   <p className="text-sm text-gray-500 mt-1">
+//                     <strong>Location:</strong>{" "}
+//                     {c.location?.address ||
+//                       c.location ||
+//                       (c.latitude && c.longitude
+//                         ? `${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}`
+//                         : "Not specified")}
+//                   </p>
+//                   <button
+//                     onClick={() => setViewingComplaint(c)}
+//                     className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
 //                   >
-//                     <p className="font-semibold text-lg">{c.title}</p>
-//                     <p className="text-sm text-gray-600">{c.description}</p>
-//                     {c.photo && (
-//                       <img
-//                         src={c.photo}
-//                         alt="complaint"
-//                         className="w-full h-48 object-cover rounded mt-3"
-//                       />
-//                     )}
-//                     <button
-//                       onClick={() => setViewingComplaint(c)}
-//                       className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
-//                     >
-//                       View
-//                     </button>
-//                   </div>
-//                 ))}
-//               </div>
-//             ) : (
-//               <p className="text-gray-500 text-sm text-center">
-//                 No nearby complaints
-//               </p>
-//             )}
+//                     View
+//                   </button>
+//                   <button
+//                     onClick={() => handleAssignComplaint(c._id)}
+//                     className="mt-2 px-3 py-1 rounded bg-purple-500 text-white text-sm hover:bg-purple-600"
+//                   >
+//                     Assign to Me
+//                   </button>
+//                 </div>
+//               ))}
+//             </div>
 //           </div>
 //         )}
 //       </main>
@@ -417,52 +447,64 @@
 //       {/* View Complaint Modal */}
 //       {viewingComplaint && (
 //         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-//           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+//           <div className="bg-white rounded-xl p-6 w-11/12 md:w-1/2 relative">
 //             <button
 //               onClick={() => setViewingComplaint(null)}
-//               className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+//               className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
 //             >
 //               <XCircle className="w-6 h-6" />
 //             </button>
-//             <h3 className="text-xl font-semibold mb-2">
-//               {viewingComplaint.title}
-//             </h3>
-//             <p className="text-gray-700 mb-2">{viewingComplaint.description}</p>
-//             <p className="text-gray-500 mb-2">
-//               <strong>Location:</strong>{" "}
-//               {viewingComplaint.location?.address || "Not specified"}
-//             </p>
+//             <h3 className="font-semibold text-xl">{viewingComplaint.title}</h3>
 //             {viewingComplaint.photo && (
 //               <img
 //                 src={viewingComplaint.photo}
 //                 alt="complaint"
-//                 className="w-full h-64 object-cover rounded mb-4"
+//                 className="w-full h-64 object-cover rounded mt-2 mb-3"
 //               />
 //             )}
-//             <StatusBadge status={viewingComplaint.status} />
-//             <div className="flex gap-2 mt-4 flex-wrap">
-//               <button
-//                 className="px-3 py-1 rounded bg-purple-500 text-white hover:bg-purple-600"
-//                 onClick={() =>
-//                   handleVolunteerAction(viewingComplaint._id, "In Progress")
-//                 }
-//               >
-//                 In Progress
-//               </button>
-//               <button
-//                 className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600"
-//                 onClick={() =>
-//                   handleVolunteerAction(viewingComplaint._id, "Resolved")
-//                 }
-//               >
-//                 Resolve
-//               </button>
-//               <button
-//                 className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
-//                 onClick={() => handleAssignComplaint(viewingComplaint._id)}
-//               >
-//                 Assign
-//               </button>
+//             <p className="text-gray-700">{viewingComplaint.description}</p>
+//             <p className="text-gray-500 mt-1">
+//               <strong>Location:</strong>{" "}
+//               {viewingComplaint.location?.address ||
+//                 viewingComplaint.location ||
+//                 (viewingComplaint.latitude && viewingComplaint.longitude
+//                   ? `${viewingComplaint.latitude.toFixed(4)}, ${viewingComplaint.longitude.toFixed(4)}`
+//                   : "Not specified")}
+//             </p>
+//             <p className="text-gray-500 mt-1">
+//               <strong>Status:</strong> {viewingComplaint.status}
+//             </p>
+//             <div className="mt-4 flex gap-3 flex-wrap">
+//               {user.role === "volunteer" && (
+//                 <>
+//                   <button
+//                     className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+//                     onClick={() => handleVolunteerAction(viewingComplaint._id, "In Progress")}
+//                   >
+//                     In Progress
+//                   </button>
+//                   <button
+//                     className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+//                     onClick={() => handleVolunteerAction(viewingComplaint._id, "Resolved")}
+//                   >
+//                     Resolve
+//                   </button>
+//                   <button
+//                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+//                     onClick={() => handleUnassignComplaint(viewingComplaint._id)}
+//                   >
+//                     Unassign
+//                   </button>
+//                 </>
+//               )}
+//               {user.role === "volunteer" && !viewingComplaint.volunteer && (
+//                 <button
+//                   className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
+//                   onClick={() => handleAssignComplaint(viewingComplaint._id)}
+//                 >
+//                   Assign to Me
+//                 </button>
+//               )}
 //             </div>
 //           </div>
 //         </div>
@@ -470,6 +512,8 @@
 //     </div>
 //   );
 // }
+
+
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -494,7 +538,7 @@ import {
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { io } from "socket.io-client";
-import api from "../api/axios"; // ✅ centralized axios instance
+import api from "../api/axios";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -514,7 +558,7 @@ export default function Dashboard() {
 
   const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-  // ✅ Real-time updates via Socket.IO
+  // 🔌 Socket.io
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       transports: ["websocket"],
@@ -531,12 +575,17 @@ export default function Dashboard() {
     return () => socket.disconnect();
   }, []);
 
-  // ✅ Fetch logged-in user
+  // 👤 Fetch logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const { data } = await api.get("/auth/profile");
         setUser(data);
+
+        // 🔹 Redirect admin to AdminDashboard
+        if (data.role === "admin") {
+          navigate("/admin-dashboard");
+        }
       } catch (err) {
         console.error("Error fetching user:", err);
         navigate("/login");
@@ -545,7 +594,7 @@ export default function Dashboard() {
     fetchUser();
   }, [navigate]);
 
-  // ✅ Fetch dashboard data dynamically
+  // 📊 Fetch dashboard data
   const fetchDashboardData = async () => {
     if (!user) return;
     try {
@@ -557,14 +606,10 @@ export default function Dashboard() {
         inProgress: dataStats.inProgress || 0,
       });
 
-      if (user.role === "admin") {
-        const { data } = await api.get("/complaints/all");
-        setAllComplaints(data || []);
-      } else if (user.role === "volunteer") {
+      if (user.role === "volunteer") {
         const { data: assigned } = await api.get("/complaints/assigned");
         setActivities(assigned);
 
-        // ✅ Fetch nearby complaints
         let lat = user.lat;
         let lng = user.lng;
         if (!lat || !lng) {
@@ -576,7 +621,6 @@ export default function Dashboard() {
             })
           );
         }
-
         const { data: nearby } = await api.get(
           `/complaints/nearby?latitude=${lat}&longitude=${lng}`
         );
@@ -594,7 +638,7 @@ export default function Dashboard() {
     if (user) fetchDashboardData();
   }, [user]);
 
-  // ✅ Logout
+  // 🚪 Logout
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
@@ -606,27 +650,27 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Volunteer Action (In Progress / Resolved)
+  // 👷 Volunteer Actions
   const handleVolunteerAction = async (id, status) => {
     try {
-      await api.put(`/complaints/${id}/status`, { status });
+  //    await api.put(`/complaints/${id}/status`, { status });
+      await api.put(`/complaints/update-status/${id}`, { status });
+
       setViewingComplaint(null);
       fetchDashboardData();
     } catch (err) {
       console.error("Volunteer action error:", err);
+      alert(err.response?.data?.message || "Error updating complaint status.");
     }
   };
 
-  // ✅ Volunteer Assign Complaint (fixed to match backend controller)
   const handleAssignComplaint = async (id) => {
     try {
-      const res = await api.put(`/complaints/${id}/assign`);
+      const res = await api.put(`/complaints/${id}/self-assign`);
       if (res.status === 200) {
         alert(res.data.message || "Complaint assigned successfully!");
         setViewingComplaint(null);
         fetchDashboardData();
-      } else {
-        alert("Failed to assign complaint.");
       }
     } catch (err) {
       console.error("Error assigning complaint:", err);
@@ -637,24 +681,23 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Generate Admin PDF Report
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.text("CleanStreet - Complaint Report", 14, 15);
-    const tableData = allComplaints.map((c) => [
-      c.title,
-      c.status,
-      c.user?.username || "N/A",
-      new Date(c.createdAt).toLocaleDateString(),
-    ]);
-    doc.autoTable({
-      head: [["Title", "Status", "User", "Date"]],
-      body: tableData,
-      startY: 25,
-    });
-    doc.save("Complaint_Report.pdf");
+  const handleUnassignComplaint = async (id) => {
+    try {
+      const res = await api.put(`/complaints/${id}/unassign`);
+      if (res.status === 200) {
+        const unassignedComplaint = res.data.complaint;
+        setActivities((prev) => prev.filter((c) => c._id !== id));
+        setNearbyComplaints((prev) => [unassignedComplaint, ...prev]);
+        setViewingComplaint(null);
+        alert(res.data.message || "Complaint unassigned successfully!");
+      }
+    } catch (err) {
+      console.error("Error unassigning complaint:", err);
+      alert(err.response?.data?.message || "Error unassigning complaint.");
+    }
   };
 
+  // 🟩 Status Badge
   const StatusBadge = ({ status }) => {
     const colors = {
       Resolved: "bg-green-200 text-green-800",
@@ -682,10 +725,11 @@ export default function Dashboard() {
       </div>
     );
 
+  // ---------------- JSX ----------------
   return (
     <div className="min-h-screen bg-gray-100 text-black">
       {/* Navbar */}
-      <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-b bg-gray-50">
+      <header className="flex flex-col md:flex-row justify-between items-center px-6 py-4 shadow-md bg-gray-50">
         <div className="flex items-center space-x-2 mb-2 md:mb-0">
           <img src="/logo.png" alt="logo" className="w-6 h-6" />
           <span className="font-bold text-xl">CleanStreet</span>
@@ -715,6 +759,15 @@ export default function Dashboard() {
           >
             View Complaints
           </Link>
+           {/* ✅ New Admin Logs link — visible for all 3 roles */}
+  <Link
+    to="/admin-logs"
+    className={`hover:underline font-medium ${
+      isActive("/admin-logs") ? "text-blue-600 font-bold" : ""
+    }`}
+  >
+    Admin Logs
+  </Link>
         </nav>
         <div className="flex items-center space-x-4">
           <div
@@ -740,51 +793,35 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+   
+      
+{/* Hero Section */}
+<div className="mx-6 mt-2"> {/* <-- add top margin to avoid overlap */}
+  <div
+    className="w-full  h-40 rounded-2xl bg-cover bg-center flex items-center px-6 text-white"
+    style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+  >
+    <div>
+      <h2 className="text-2xl font-semibold">Keep Our City Clean Together</h2>
+      <p className="text-sm mt-1">
+        Report issues, track progress, and help maintain our community
+      </p>
+    </div>
+  </div>
+</div>
 
-      {/* Hero */}
-      <div
-        className="w-full h-40 rounded-2xl mt-4 mx-6 bg-cover bg-center flex flex-col justify-center px-6 text-white"
-        style={{ backgroundImage: "url('/dashboard-bg.png')" }}
-      >
-        <h2 className="text-2xl font-semibold">Keep Our City Clean Together</h2>
-        <p className="text-sm">
-          Report issues, track progress, and help maintain our community
-        </p>
-      </div>
-
-      {/* Stats Section */}
+      
+      {/* Volunteer / User Dashboard */}
       <main className="flex flex-col items-center justify-start w-full mt-6 px-4 md:px-8 space-y-6">
+        {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
           {[
-            {
-              label: "Total",
-              count: stats.total,
-              icon: AlertTriangle,
-              color: "text-red-500",
-            },
-            {
-              label: "Pending",
-              count: stats.pending,
-              icon: Clock,
-              color: "text-blue-500",
-            },
-            {
-              label: "Resolved",
-              count: stats.resolved,
-              icon: CheckCircle,
-              color: "text-green-500",
-            },
-            {
-              label: "In Progress",
-              count: stats.inProgress,
-              icon: RefreshCcw,
-              color: "text-yellow-500",
-            },
+            { label: "Total", count: stats.total, icon: AlertTriangle, color: "text-red-500" },
+            { label: "Pending", count: stats.pending, icon: Clock, color: "text-blue-500" },
+            { label: "Resolved", count: stats.resolved, icon: CheckCircle, color: "text-green-500" },
+            { label: "In Progress", count: stats.inProgress, icon: RefreshCcw, color: "text-yellow-500" },
           ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6"
-            >
+            <div key={i} className="bg-white rounded-2xl shadow-lg flex flex-col items-center py-6">
               <p className="text-sm">{item.label}</p>
               <p className="text-3xl font-bold">{item.count}</p>
               <item.icon className={`${item.color} w-6 h-6 mt-2`} />
@@ -792,105 +829,104 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Admin / Volunteer / User Views */}
-        {user.role === "admin" ? (
-          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-lg">Complaint Overview</h3>
-              <button
-                onClick={generatePDF}
-                className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                <FileText className="w-4 h-4" /> Generate PDF
-              </button>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={[
-                  { name: "Pending", value: stats.pending },
-                  { name: "In Progress", value: stats.inProgress },
-                  { name: "Resolved", value: stats.resolved },
-                ]}
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
-            <h3 className="font-semibold text-lg mb-4">
-              {user.role === "volunteer"
-                ? "My Assigned Complaints"
-                : "My Reported Complaints"}
-            </h3>
-            {activities.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {activities.map((a) => (
-                  <div
-                    key={a._id}
-                    className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
-                  >
-                    {a.photo && (
-                      <img
-                        src={a.photo}
-                        alt="complaint"
-                        className="w-full h-56 object-cover rounded-lg mb-3"
-                      />
-                    )}
-                    <p className="font-semibold text-lg">{a.title}</p>
-                    <p className="text-sm text-gray-600">{a.description}</p>
-                    <div className="mt-2">
-                      <StatusBadge status={a.status} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm text-center">
-                No complaints yet
-              </p>
-            )}
-          </div>
-        )}
+        {/* Assigned / My Complaints */}
+        <div className="bg-white rounded-2xl shadow-lg w-full p-6">
+          <h3 className="font-semibold text-lg mb-4">
+            {user.role === "volunteer" ? "My Assigned Complaints" : "My Reported Complaints"}
+          </h3>
 
-        {/* Volunteer - Nearby Complaints */}
-        {user.role === "volunteer" && (
-          <div className="bg-white rounded-2xl shadow-lg w-full p-6">
-            <h3 className="font-semibold text-lg mb-4">Nearby Complaints</h3>
-            {nearbyComplaints.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {nearbyComplaints.map((c) => (
-                  <div
-                    key={c._id}
-                    className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
-                  >
-                    <p className="font-semibold text-lg">{c.title}</p>
-                    <p className="text-sm text-gray-600">{c.description}</p>
-                    {c.photo && (
-                      <img
-                        src={c.photo}
-                        alt="complaint"
-                        className="w-full h-48 object-cover rounded mt-3"
-                      />
+          {activities.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activities.map((a) => (
+                <div key={a._id} className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col">
+                  {a.photo && <img src={a.photo} alt="complaint" className="w-full h-56 object-cover rounded-lg mb-3" />}
+                  <p className="font-semibold text-lg">{a.title}</p>
+                  <p className="text-sm text-gray-600">{a.description}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    <strong>Location:</strong>{" "}
+                    {a.location?.address ||
+                      a.location ||
+                      (a.latitude && a.longitude
+                        ? `${a.latitude.toFixed(4)}, ${a.longitude.toFixed(4)}`
+                        : "Not specified")}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    <strong>Reported By:</strong> {a.user?.username || "N/A"}
+                  </p>
+                  {a.volunteer && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      <strong>Volunteer:</strong> {a.volunteer.username || "N/A"}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-500 mt-1">
+                    <strong>Created At:</strong> {new Date(a.createdAt).toLocaleString()}
+                  </p>
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    <StatusBadge status={a.status} />
+                    {user.role === "volunteer" && (
+                      <>
+                        <button
+                          className="px-2 py-1 rounded bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
+                          onClick={() => handleVolunteerAction(a._id, "In Progress")}
+                        >
+                          In Progress
+                        </button>
+                        <button
+                          className="px-2 py-1 rounded bg-green-500 text-white hover:bg-green-600 text-sm"
+                          onClick={() => handleVolunteerAction(a._id, "Resolved")}
+                        >
+                          Resolve
+                        </button>
+                        <button
+                          className="px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 text-sm"
+                          onClick={() => handleUnassignComplaint(a._id)}
+                        >
+                          Unassign
+                        </button>
+                      </>
                     )}
-                    <button
-                      onClick={() => setViewingComplaint(c)}
-                      className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
-                    >
-                      View
-                    </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm text-center">
-                No nearby complaints
-              </p>
-            )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm text-center">No complaints yet</p>
+          )}
+        </div>
+
+        {/* Nearby Complaints */}
+        {user.role === "volunteer" && nearbyComplaints.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg w-full p-6 mt-6">
+            <h3 className="font-semibold text-lg mb-4">Nearby Complaints</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {nearbyComplaints.map((c) => (
+                <div key={c._id} className="bg-gray-50 rounded-xl shadow-md border border-gray-200 p-4 flex flex-col">
+                  {c.photo && <img src={c.photo} alt="complaint" className="w-full h-48 object-cover rounded mb-3" />}
+                  <p className="font-semibold text-lg">{c.title}</p>
+                  <p className="text-sm text-gray-600">{c.description}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    <strong>Location:</strong>{" "}
+                    {c.location?.address ||
+                      c.location ||
+                      (c.latitude && c.longitude
+                        ? `${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}`
+                        : "Not specified")}
+                  </p>
+                  <button
+                    onClick={() => setViewingComplaint(c)}
+                    className="mt-3 px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleAssignComplaint(c._id)}
+                    className="mt-2 px-3 py-1 rounded bg-purple-500 text-white text-sm hover:bg-purple-600"
+                  >
+                    Assign to Me
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
@@ -898,52 +934,64 @@ export default function Dashboard() {
       {/* View Complaint Modal */}
       {viewingComplaint && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+          <div className="bg-white rounded-xl p-6 w-11/12 md:w-1/2 relative">
             <button
               onClick={() => setViewingComplaint(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+              className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
             >
               <XCircle className="w-6 h-6" />
             </button>
-            <h3 className="text-xl font-semibold mb-2">
-              {viewingComplaint.title}
-            </h3>
-            <p className="text-gray-700 mb-2">{viewingComplaint.description}</p>
-            <p className="text-gray-500 mb-2">
-              <strong>Location:</strong>{" "}
-              {viewingComplaint.location?.address || "Not specified"}
-            </p>
+            <h3 className="font-semibold text-xl">{viewingComplaint.title}</h3>
             {viewingComplaint.photo && (
               <img
                 src={viewingComplaint.photo}
                 alt="complaint"
-                className="w-full h-64 object-cover rounded mb-4"
+                className="w-full h-64 object-cover rounded mt-2 mb-3"
               />
             )}
-            <StatusBadge status={viewingComplaint.status} />
-            <div className="flex gap-2 mt-4 flex-wrap">
-              <button
-                className="px-3 py-1 rounded bg-purple-500 text-white hover:bg-purple-600"
-                onClick={() =>
-                  handleVolunteerAction(viewingComplaint._id, "In Progress")
-                }
-              >
-                In Progress
-              </button>
-              <button
-                className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600"
-                onClick={() =>
-                  handleVolunteerAction(viewingComplaint._id, "Resolved")
-                }
-              >
-                Resolve
-              </button>
-              <button
-                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
-                onClick={() => handleAssignComplaint(viewingComplaint._id)}
-              >
-                Assign
-              </button>
+            <p className="text-gray-700">{viewingComplaint.description}</p>
+            <p className="text-gray-500 mt-1">
+              <strong>Location:</strong>{" "}
+              {viewingComplaint.location?.address ||
+                viewingComplaint.location ||
+                (viewingComplaint.latitude && viewingComplaint.longitude
+                  ? `${viewingComplaint.latitude.toFixed(4)}, ${viewingComplaint.longitude.toFixed(4)}`
+                  : "Not specified")}
+            </p>
+            <p className="text-gray-500 mt-1">
+              <strong>Status:</strong> {viewingComplaint.status}
+            </p>
+            <div className="mt-4 flex gap-3 flex-wrap">
+              {user.role === "volunteer" && (
+                <>
+                  <button
+                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+                    onClick={() => handleVolunteerAction(viewingComplaint._id, "In Progress")}
+                  >
+                    In Progress
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                    onClick={() => handleVolunteerAction(viewingComplaint._id, "Resolved")}
+                  >
+                    Resolve
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                    onClick={() => handleUnassignComplaint(viewingComplaint._id)}
+                  >
+                    Unassign
+                  </button>
+                </>
+              )}
+              {user.role === "volunteer" && !viewingComplaint.volunteer && (
+                <button
+                  className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
+                  onClick={() => handleAssignComplaint(viewingComplaint._id)}
+                >
+                  Assign to Me
+                </button>
+              )}
             </div>
           </div>
         </div>

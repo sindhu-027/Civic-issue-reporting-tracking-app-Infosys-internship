@@ -6,6 +6,8 @@ import Dashboard from "./components/Dashboard";
 import ReportIssue from "./components/ReportIssue";
 import Profile from "./components/Profile";
 import ViewComplaints from "./components/ViewComplaints";
+import AdminDashboard from "./components/AdminDashboard";
+import AdminLogs from "./components/AdminLogs";
 
 export default function App() {
   return (
@@ -18,6 +20,9 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/report" element={<ReportIssue />} />
         <Route path="/complaints" element={<ViewComplaints />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-logs" element={<AdminLogs />} />
+
       </Routes>
     </Router>
   );
