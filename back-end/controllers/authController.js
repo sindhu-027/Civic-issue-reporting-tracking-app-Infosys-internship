@@ -1,4 +1,3 @@
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
@@ -65,42 +64,6 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
-
-// // ✅ Register
-// export const registerUser = async (req, res) => {
-//   try {
-//     const { username, email, password, role } = req.body;
-
-//     if (!username || !email || !password)
-//       return res.status(400).json({ message: "All fields are required" });
-
-//     const userExists = await User.findOne({ email });
-//     if (userExists)
-//       return res.status(400).json({ message: "User already exists" });
-
-//     const user = await User.create({ username, email, password, role });
-
-//     const token = generateToken(user._id);
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       sameSite: "lax",
-//       secure: false,
-//     });
-
-//     res.status(201).json({
-//       message: "Registration successful",
-//       user: {
-//         _id: user._id,
-//         username: user.username,
-//         email: user.email,
-//         role: user.role,
-//       },
-//     });
-//   } catch (err) {
-//     console.error("❌ Register Error:", err.message);
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
 
 // ✅ Login
 export const loginUser = async (req, res) => {

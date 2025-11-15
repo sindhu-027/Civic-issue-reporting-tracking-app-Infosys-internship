@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
@@ -74,62 +73,7 @@ export default function ReportIssue() {
     }
   };
 
-  // 🚀 Submit the complaint
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (submitting) return;
-
-  //   if (!formData.location) {
-  //     alert("📍 Please select a location or enter a valid address.");
-  //     return;
-  //   }
-
-  //   setSubmitting(true);
-  //   try {
-  //     const data = new FormData();
-  //     data.append("title", formData.issueTitle);
-  //     data.append("description", formData.description);
-  //     data.append("category", formData.issueType);
-  //     data.append("location", formData.address);
-  //     data.append("latitude", formData.location.lat);
-  //     data.append("longitude", formData.location.lng);
-  //     data.append("priorityLevel", formData.priorityLevel);
-  //     data.append("landmark", formData.landmark);
-
-  //     // ✅ Append all photos (multiple)
-  //     formData.photos.forEach((photo) => {
-  //       data.append("photos", photo);
-  //     });
-
-  //     const response = await api.post("/complaints", data, {
-  //       headers: { "Content-Type": "multipart/form-data" },
-  //     });
-
-  //     if (response.data?.success) {
-  //       alert("✅ Complaint submitted successfully!");
-  //       setFormData({
-  //         issueTitle: "",
-  //         issueType: "",
-  //         priorityLevel: "",
-  //         address: "",
-  //         landmark: "",
-  //         description: "",
-  //         location: null,
-  //         photos: [],
-  //       });
-  //       setPreviews([]);
-  //       window.location.href = "/dashboard";
-  //     } else {
-  //       alert("❌ Failed to submit complaint!");
-  //     }
-  //   } catch (err) {
-  //     console.error("Error submitting complaint:", err);
-  //     alert(err.response?.data?.message || "❌ Failed to submit complaint!");
-  //   } finally {
-  //     setTimeout(() => setSubmitting(false), 600);
-  //   }
-  // };
-      // 🚀 Submit the complaint
+      //  Submit the complaint
 const handleSubmit = async (e) => {
   e.preventDefault();
   if (submitting) return;

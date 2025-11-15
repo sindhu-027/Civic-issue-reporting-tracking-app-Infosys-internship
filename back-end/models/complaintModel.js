@@ -1,8 +1,7 @@
-
 // models/complaintModel.js
 import mongoose from "mongoose";
 
-// ✅ Comment Schema
+//  Comment Schema
 const commentSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -12,7 +11,7 @@ const commentSchema = new mongoose.Schema(
   { _id: true } // Allow editing/deleting comments
 );
 
-// ✅ Complaint Schema
+//  Complaint Schema
 const complaintSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -20,7 +19,7 @@ const complaintSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
 
-    // ✅ Multiple photos supported
+    //  Multiple photos supported
     photos: {
       type: [String],
       default: [],
@@ -33,26 +32,26 @@ const complaintSchema = new mongoose.Schema(
 
     category: { type: String, default: "" },
 
-    // 🧑‍🤝‍🧑 Volunteer assignment
+    // Volunteer assignment
     volunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
-    // ⚙️ Complaint status
+    //  Complaint status
     status: {
       type: String,
       enum: ["Pending", "Assigned", "In Progress", "Resolved"],
       default: "Pending",
     },
 
-    // 👍 Separate arrays for votes
+    //  Separate arrays for votes
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    // 💬 Comments
+    //  Comments
     comments: [commentSchema],
   },
   { timestamps: true }
 );
 
-// ✅ Export model
+//  Export model
 const Complaint = mongoose.model("Complaint", complaintSchema);
 export default Complaint;

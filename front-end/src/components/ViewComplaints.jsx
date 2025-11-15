@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import api from "../api/axios"; // centralized axios instance (baseURL -> /api)
+import api from "../api/axios"; 
 
 export default function ViewComplaints() {
   const [complaints, setComplaints] = useState([]);
@@ -11,7 +10,7 @@ export default function ViewComplaints() {
   const [voting, setVoting] = useState(false);
   const [postingComment, setPostingComment] = useState(false);
 
-  // ✅ Fetch all complaints
+  //  Fetch all complaints
   const fetchAll = async () => {
     try {
       const res = await api.get("/complaints/all");
@@ -30,7 +29,7 @@ export default function ViewComplaints() {
     })();
   }, []);
 
-  // ✅ Fetch single complaint
+  //  Fetch single complaint
   const fetchComplaintById = async (id) => {
     try {
       const res = await api.get("/complaints/all");
@@ -42,28 +41,7 @@ export default function ViewComplaints() {
     }
   };
 
-  // // ✅ Handle Upvote / Downvote (fixed endpoints)
-  // const handleVote = async (id, type) => {
-  //   try {
-  //     setVoting(true);
-  //     if (type === "up") {
-  //       await api.post(`/complaints/${id}/upvote`);
-  //     } else {
-  //       await api.post(`/complaints/${id}/downvote`);
-  //     }
-
-  //     await fetchAll();
-  //     if (selectedComplaint && selectedComplaint._id === id) {
-  //       const updated = await fetchComplaintById(id);
-  //       setSelectedComplaint(updated);
-  //     }
-  //   } catch (err) {
-  //     console.error("Vote failed:", err);
-  //   } finally {
-  //     setVoting(false);
-  //   }
-  // };
-// ✅ Corrected handleVote (for separate routes)
+//   handleVote 
 const handleVote = async (id, type) => {
   try {
     setVoting(true);
@@ -81,7 +59,7 @@ const handleVote = async (id, type) => {
   }
 };
 
-  // ✅ Handle Comment
+  //  Handle Comment
   const handleComment = async () => {
     if (!selectedComplaint || !comment.trim()) return;
     try {
@@ -130,30 +108,7 @@ const handleVote = async (id, type) => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       {/* ✅ Navbar */}
-      {/* <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
-        <h1 className="text-xl font-bold text-green-700">Clean Street</h1>
-        <div className="flex gap-4">
-          <button
-            onClick={() => (window.location.href = "/dashboard")}
-            className="text-gray-700 hover:text-green-600 font-semibold"
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => (window.location.href = "/report")}
-            className="text-gray-700 hover:text-green-600 font-semibold"
-          >
-            Report Issue
-          </button>
-          <button
-            onClick={() => (window.location.href = "/profile")}
-            className="text-gray-700 hover:text-green-600 font-semibold"
-          >
-            Profile
-          </button>
-        </div>
-      </div> */}
-      {/* ✅ Navbar with logo */}
+
 <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-xl mb-6">
   <div className="flex items-center gap-3">
     <img
