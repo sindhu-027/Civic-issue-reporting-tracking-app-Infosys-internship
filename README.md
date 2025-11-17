@@ -70,7 +70,7 @@ Open browser at http://localhost:5173
 
 ---
 
-##📂 Proj## 👥 Team Roles
+##📂 **Project Structure**
 
 backend/       → Node.js + Express API
 frontend/      → React + TailwindCSS + Vite
@@ -83,7 +83,7 @@ routes/        → API endpoints
 
 📈 Live Demo
 
-🚀 Clean Street App
+🚀 Clean Street App Link
 
 
 ---
