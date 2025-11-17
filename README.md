@@ -90,6 +90,16 @@ routes/        → API endpoints
 ```
 ---
 
+**📝Additional Notes**
+
+Code is modular and structured for readability
+
+Branch: main branch contains the final project submission done by ![Team](https://img.shields.io/badge/Team-1-blue)
+
+All features were collaboratively developed and tested
+
+---
+
 **📜 License**
 
 No formal license included. Contact Sindhu S for usage permissions.
