@@ -11,8 +11,7 @@
 
 ## 👥 Team Roles
 
-- 💼 Team Lead & Full Stack Developer: ![Sindhu S](https://img.shields.io/badge/Sindhu_S-Team_Lead
-- -brightgreen) – Led the project, developed Frontend & Backend  
+- 💼 Team Lead & Full Stack Developer: ![Sindhu S](https://img.shields.io/badge/Sindhu_S-Team_Lead-brightgreen) – Led the project, developed Frontend & Backend  
 - 🎨 UI Designer: ![Uwais Kasmani](https://img.shields.io/badge/Uwais_Kasmani-UI_Designer-blue) – Designed UI using Figma  
 - 🛠️ Final Frontend (Admin Dashboard Only): ![Annapoorna SJ](https://img.shields.io/badge/AnnapoornaSJ-Frontend_Admin-red) – Did not contribute in final version  
 
