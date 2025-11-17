@@ -64,13 +64,15 @@ npm run dev
 cd ../frontend
 npm install
 npm run dev
-
-Open browser at http://localhost:5173
-
+````
 
 ---
 
-##📂 **Project Structure**
+Open browser at``` http://localhost:5173```
+
+---
+
+**##📂Project Structure**
 
 backend/       → Node.js + Express API
 frontend/      → React + TailwindCSS + Vite
@@ -81,14 +83,13 @@ routes/        → API endpoints
 
 ---
 
-📈 Live Demo
-
+**📈 Live Demo**
+```
 🚀 Clean Street App Link
-
-
+```
 ---
 
-📜 License
+**📜 License**
 
 No formal license included. Contact Sindhu S for usage permissions.
 
