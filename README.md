@@ -63,29 +63,3 @@ cd ../frontend
 npm install
 npm run dev
 
-Open browser at http://localhost:5173
-
-
----
-
-📂 Project Structure
-
-backend/       → Node.js + Express API
-frontend/      → React + TailwindCSS + Vite
-models/        → MongoDB schemas
-controllers/   → API logic
-routes/        → API endpoints
-
-
----
-
-📈 Live Demo
-
-🚀 Clean Street App
-
-
----
-
-📜 License
-
-No formal license included. Contact Sindhu S for usage permissions.
