@@ -74,14 +74,14 @@ Open browser at``` http://localhost:5173```
 ---
 
 **📂Project Structure**
-
+```
 backend/       → Node.js + Express API
 frontend/      → React + TailwindCSS + Vite
 models/        → MongoDB schemas
 controllers/   → API logic
 routes/        → API endpoints
 
-
+```
 ---
 
 **📈 Live Demo**
