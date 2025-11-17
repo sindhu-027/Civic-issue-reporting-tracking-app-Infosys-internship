@@ -1,7 +1,7 @@
-# INFOSYS INTERNSHIP
+# INFOSYS INTERNSHIP 6.0 [Angular Stack Development]
 # 🌆 Clean Street – Civic Issue Reporting & Tracking App 
 
-![Infosys Internship 6.0](https://img.shields.io/badge/Infosys-Internship%206.0-blue)  
+![Infosys Internship 6.0](https://img.shields.io/badge/Infosys%20-Internship%206.0-%230072C6?style=for-the-badge&logoColor=white)  
 ![Project Status](https://img.shields.io/badge/Status-Completed-brightgreen)  
 ![Built With](https://img.shields.io/badge/Stack-MERN-blue)  
 ![Team](https://img.shields.io/badge/Team-1-orange)  
@@ -71,7 +71,7 @@ Open browser at http://localhost:5173
 
 ---
 
-📂 Project Structure
+##📂 Proj## 👥 Team Roles
 
 backend/       → Node.js + Express API
 frontend/      → React + TailwindCSS + Vite
