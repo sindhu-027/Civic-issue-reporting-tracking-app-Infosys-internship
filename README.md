@@ -1,5 +1,7 @@
-# 🌆 Clean Street – Civic Issue Reporting & Tracking App
+# INFOSYS INTERNSHIP
+# 🌆 Clean Street – Civic Issue Reporting & Tracking App 
 
+![Infosys Internship 6.0](https://img.shields.io/badge/Infosys-Internship%206.0-blue)  
 ![Project Status](https://img.shields.io/badge/Status-Completed-brightgreen)  
 ![Built With](https://img.shields.io/badge/Stack-MERN-blue)  
 ![Team](https://img.shields.io/badge/Team-1-orange)  
@@ -9,7 +11,8 @@
 
 ## 👥 Team Roles
 
-- 💼 Team Lead & Full Stack Developer: ![Sindhu S](https://img.shields.io/badge/Sindhu_S-Team_Lead-brightgreen) – Led the project, developed Frontend & Backend  
+- 💼 Team Lead & Full Stack Developer: ![Sindhu S](https://img.shields.io/badge/Sindhu_S-Team_Lead
+- -brightgreen) – Led the project, developed Frontend & Backend  
 - 🎨 UI Designer: ![Uwais Kasmani](https://img.shields.io/badge/Uwais_Kasmani-UI_Designer-blue) – Designed UI using Figma  
 - 🛠️ Final Frontend (Admin Dashboard Only): ![Annapoorna SJ](https://img.shields.io/badge/AnnapoornaSJ-Frontend_Admin-red) – Did not contribute in final version  
 
