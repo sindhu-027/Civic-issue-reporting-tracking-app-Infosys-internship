@@ -48,6 +48,7 @@ Users can report street cleanliness issues, volunteers manage assigned complaint
   - Backend `.env`: MongoDB URI, JWT secret, Cloudinary keys  
   - Frontend `.env`:
     ```env
+    
     VITE_API_URL=https://YOUR_BACKEND_URL
     ```
 
@@ -72,7 +73,7 @@ Open browser at``` http://localhost:5173```
 
 ---
 
-**##📂Project Structure**
+**📂Project Structure**
 
 backend/       → Node.js + Express API
 frontend/      → React + TailwindCSS + Vite
