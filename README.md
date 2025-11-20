@@ -45,6 +45,7 @@ Users can report street cleanliness issues, volunteers manage assigned complaint
 
 ![OWASP](https://img.shields.io/badge/OWASP-Top%2010%20Implemented-darkblue?style=for-the-badge)
 
+
 ### ✅ 1. Broken Access Control  
 - Role-based access: User / Volunteer / Admin  
 - Protected API routes using JWT middleware  
@@ -83,8 +84,8 @@ Users can report street cleanliness issues, volunteers manage assigned complaint
 
 ### ✅ 10. Server-Side Request Forgery (SSRF)  
 - No unsafe external URL requests  
-- Restricted Cloudinary upload operations  
-
+- Restricted Cloudinary upload operations
+  
 ---
 
 ## 🚀 Deployment
@@ -166,5 +167,12 @@ routes/        → API endpoints
 ## 📜 License
 
 No formal license included. Contact **Sindhu S** for usage permissions.
+
+
+
+
+
+
+
 
 
