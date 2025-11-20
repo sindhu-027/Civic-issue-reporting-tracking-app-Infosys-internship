@@ -81,8 +81,8 @@ export const loginUser = async (req, res) => {
     const token = generateToken(user._id);
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: "none",
+      secure: true,
     });
 
     res.json({
