@@ -105,10 +105,6 @@ routes/        → API endpoints
 
 ## 📈 Live Demo
 
-```
-👉 **[Clean Street App🚀 – Live Demo](https://civic-issue-reporting-tracking-app-9lml.onrender.com)**
-```
-📈 Live Demo
 👉 **[Clean Street App🚀 – Live Demo](https://civic-issue-reporting-tracking-app-9lml.onrender.com)**
 
 ---
