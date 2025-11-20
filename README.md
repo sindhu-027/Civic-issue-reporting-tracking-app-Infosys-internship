@@ -121,5 +121,6 @@ routes/        → API endpoints
 
 No formal license included. Contact **Sindhu S** for usage permissions.
 
+🔐 Security: OWASP Top 10 Compliant ✔️
 
 
