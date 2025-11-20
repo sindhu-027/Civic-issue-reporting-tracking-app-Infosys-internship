@@ -3,10 +3,10 @@
 
 ![Infosys Internship 6.0](https://img.shields.io/badge/Infosys%20-Internship%206.0-%230072C6?style=for-the-badge&logoColor=white)  
 ![Project Status](https://img.shields.io/badge/Status-Completed-brightgreen)  
+![OWASP](https://img.shields.io/badge/OWASP-Top%2010%20Implemented-darkblue)
 ![Built With](https://img.shields.io/badge/Stack-MERN-blue)  
 ![Team](https://img.shields.io/badge/Team-1-orange)  
 [![🚀 Live Demo](https://img.shields.io/badge/Clean_Street-Live_Demo-blueviolet)](https://civic-issue-reporting-tracking-app-9lml.onrender.com)
-
 
 ---
 
@@ -38,6 +38,52 @@ Users can report street cleanliness issues, volunteers manage assigned complaint
 - Project divided into 4 milestones following Agile methodology  
 - After each milestone, a demo was presented to Infosys mentor  
 - Iterative development with continuous feedback  
+
+---
+
+## 🔒 OWASP Top 10 – Security Implementations  
+
+![OWASP](https://img.shields.io/badge/OWASP-Top%2010%20Implemented-darkblue?style=for-the-badge)
+
+### ✅ 1. Broken Access Control  
+- Role-based access: User / Volunteer / Admin  
+- Protected API routes using JWT middleware  
+
+### ✅ 2. Cryptographic Failures  
+- Passwords hashed using bcrypt  
+- JWT signed with secret keys stored in `.env`  
+
+### ✅ 3. Injection Prevention  
+- Server-side input validation  
+- Sanitized fields to prevent NoSQL & JS injection  
+
+### ✅ 4. Insecure Design  
+- Modular MVC architecture  
+- Only image formats allowed for uploads  
+
+### ✅ 5. Security Misconfiguration  
+- Proper CORS setup  
+- All credentials hidden in `.env`  
+
+### ✅ 6. Vulnerable & Outdated Components  
+- Updated React, Express, bcrypt, JWT, Cloudinary versions  
+- Clean dependency usage  
+
+### ✅ 7. Identification & Authentication Failures  
+- JWT-based login & role verification  
+- No plain-text passwords  
+
+### ✅ 8. Software & Data Integrity Failures  
+- All images stored in Cloudinary (no local risk)  
+- Only validated complaint data stored  
+
+### ✅ 9. Security Logging & Monitoring Failures  
+- Complaint status updates logged  
+- Safe error handling (no sensitive info leaks)  
+
+### ✅ 10. Server-Side Request Forgery (SSRF)  
+- No unsafe external URL requests  
+- Restricted Cloudinary upload operations  
 
 ---
 
@@ -120,7 +166,5 @@ routes/        → API endpoints
 ## 📜 License
 
 No formal license included. Contact **Sindhu S** for usage permissions.
-
-🔐 Security: OWASP Top 10 Compliant ✔️
 
 
