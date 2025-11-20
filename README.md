@@ -116,6 +116,8 @@ No formal license included. Contact Sindhu S for usage permissions.
 ![Built With](https://img.shields.io/badge/Stack-MERN-blue)  
 ![Team](https://img.shields.io/badge/Team-1-orange)  
 ![🚀 Live Demo](https://img.shields.io/badge/Live-Demo-blueviolet?link=https://civic-issue-reporting-tracking-app-9lml.onrender.com)  
+[![🚀 Live Demo](https://img.shields.io/badge/Clean_Street-Live_Demo-blueviolet)](https://civic-issue-reporting-tracking-app-9lml.onrender.com)
+
 
 ---
 
@@ -218,6 +220,9 @@ routes/        → API endpoints
 🚀 Clean Street App
 https://civic-issue-reporting-tracking-app-9lml.onrender.com
 ```
+## 📈 Live Demo
+
+👉 **[Clean Street – Live Demo](https://civic-issue-reporting-tracking-app-9lml.onrender.com)**  
 
 ---
 
