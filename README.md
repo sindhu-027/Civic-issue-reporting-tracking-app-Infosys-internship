@@ -5,7 +5,7 @@
 ![Project Status](https://img.shields.io/badge/Status-Completed-brightgreen)  
 ![Built With](https://img.shields.io/badge/Stack-MERN-blue)  
 ![Team](https://img.shields.io/badge/Team-1-orange)  
-![🚀 Live Demo](https://img.shields.io/badge/Live-Demo-blueviolet?link=https://YOUR_FRONTEND_URL_HERE)  
+![🚀 Live Demo](https://img.shields.io/badge/Live-Demo-blueviolet?link=https://civic-issue-reporting-tracking-app-9lml.onrender.com)  
 
 ---
 
